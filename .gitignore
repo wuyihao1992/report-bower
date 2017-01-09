@@ -1,0 +1,6 @@
+/bower_components
+/node_modules
+.project
+.idea
+*.iml
+/*.iml
