@@ -33,7 +33,8 @@ var proxySrv = function(req, res) {
 browserSync.init({
 	server: {
 		baseDir: './',
-		directory: true,
+		// directory: true,
+        // startPath: "/index.html",
 		index: 'index.html',
 		middleware: function(req, res, next) {
 			console.log(req.url);
