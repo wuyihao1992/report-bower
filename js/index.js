@@ -107,7 +107,7 @@
             hideDuration: 1000,
             showDuration: 1200,
             labelStyle: {
-                color: '#000'
+                color: '#929292'
             },
             style: {
                 fontWidth:'normal',
@@ -126,8 +126,26 @@
         }
     });
 
+    /**
+     * #defined TEST bool {true:"devDependencies",false:"dependencies"}
+     * **/
+    const TEST = false;
+    const TESTALL = false;
+
     let O = {
-        slider : function () {
+        root: "http://poly.hengtech.com.cn/pmsSrv/api/api!gateway.action",
+        postUrl: '/api/api!gateway.action',
+
+        currentIndex: 0,
+        $currentPage: null,
+        currentDateType: 1,
+
+        /**
+         * [报事,缴费,巡检任务,巡检项,上线统计,微信上线概括,微信用户分析,微信运营情况]
+         * **/
+        tranCode:[3007,2413,0,0,0,0,0,0],
+
+        slider: function () {
             let control = navigator.control || {};
             if (control.gesture) {
                 control.gesture(false);
@@ -135,7 +153,6 @@
 
             let page='pageNav',
                 slide='slider';
-            let lastIndex = 0;
 
             let touch=new TouchSlider({
                 id: slide,
@@ -152,12 +169,11 @@
                     this.p = index;
                 },
                 after: function (i) {
-                    if(lastIndex == i){
-                        return; //console.log('*****return false****'+i);
+                    if(O.currentIndex == i){
+                        return; //重复滑动
                     }else{
-                        lastIndex = i;
-
-                        O.manager(i); //do something
+                        O.currentIndex = i;
+                        O.manager();
                     }
                 }
             });
@@ -170,277 +186,357 @@
                 $this.addClass('active');
                 $this.siblings().removeClass('active');
 
-                O.manager(lastIndex); //切换二级选项卡重新加载
+                O.manager(); //切换二级tab重新加载table、flow
+            }).on('click','table.clickTrue tr',function (e) {
+                let $this = $(e.target);
+                if ($this.is('td')){
+                    let $tr = $this.parent('tr');
+                    if ($tr.hasClass('head')){
+                        return;
+                    }
+                    $tr.addClass('active');
+                    $tr.siblings().removeClass('active');
+
+                    let rowType = $tr.attr("row");
+                    console.log(rowType);
+                    O.flowManager(rowType,{}); //重新画图
+                }
             });
-
-            /*
-             $('.subSlider').each(function (i) {
-             let _this = $(this);
-
-             let subTab = $(".subTab",_this);
-             subTab.on("click","> a",function (e) {
-             let $this = $(e.target);
-             $this.addClass('active').siblings().removeClass('active');  // console.log(e.target);
-
-             O.manager(i); //切换二级选项卡重新加载
-             });
-             });
-             */
         },
 
-        tableManager : function (index,obj,dateType) {
-            let $subContent = $(".subContent",obj);
+        tableManager: function () {
+            let $subContent = $(".subContent",O.$currentPage);
             let $table = $("table",$subContent);
             if ($table.length > 0){
+                let dateType = $('.subTab > a.active',O.$currentPage).data('type') || 'none';
+                console.clear();
+                console.log(dateType);
+
                 let $tbody = $("tbody",$table[0]);
+                let $activeTr = $("tr.active",$tbody);
+                let rowType = $activeTr.attr("row");
+                console.log(rowType);
 
-                O.writeHtmlTest(index,$table);
+                O.writeHtml($table);
 
+                let testData = JSON.stringify({
+                    tranCode : O.tranCode[O.currentIndex],
+                    isEncryption : 0,
+                    bizContent : {
+                        beginDate:'2016-11-05',
+                        endDate:'2016-12-05',
+                        orgId:1050,
+                        grade:1
+                    }
+                });
 
-                return;
+                /*
+                let $flow = $(".flow",O.$currentPage);
+                if ($flow.length > 0){
+                    let id = $flow.attr("id");
+                    let loadOption = {
+                        chart: {
+                            type: 'area',
+                            renderTo: id,
+                        }
+                    };
+                    let charts = new Highcharts.Chart(loadOption);
+                    charts.hideNoData();
+                    charts.showLoading();
+                }
+                */
+
                 $.ajax({
-                    url : 'http://www.youxiaju.com/validate.php?loginuser=lee&loginpass=123456',
-                    type:'get',
-                    dataType : 'jsonp',
-                    // jsonp:"jsoncallback",
-                    success: function (result) {
-
+                    url : O.postUrl,
+                    type:'POST',
+                    dataType : 'json',
+                    data:testData,
+                    async:true,
+                    complete:function (result) {
+                        console.info(result.responseJSON);
+                        // let data = result.responseJSON.data;
+                        if (rowType != undefined){
+                            O.flowManager(rowType,{}); //ajax请求
+                        }else{
+                            let data = {
+                                "thisOld" : "1111.12",
+                                "thisPrepay" : "123.12",
+                                "thisNow" : "456.12",
+                                "thisOld" : "236.22",
+                                "thisPrepay" : "444.11",
+                                "thisNow" : "1111.11",
+                                "cash" : "236.22",
+                                "pos" : "236.22",
+                                "delegate" : "236.22",
+                                "exchange" : "236.22",
+                                "check" : "236.22",
+                                "wechatOffline" : "236.22",
+                                "alipayOffline" : "236.22",
+                                "wechatOnline" : "236.22",
+                                "alipayOnline" : "236.22",
+                                "to_account" : "236.22",
+                                "other" : "236.22",
+                            };
+                            O.flowManager("null",data);
+                        }
                     },
-                    error:function (xhr) {
-                        // $tbody.html(O.writeHtml(index,xhr));
+                    error: function (xhr) {
+
                     }
                 });
             }
         },
 
-        flowManager: function (index) {
-            let $currentPage = $(".sliderContentUl > li").eq(index);
-            let dateType = $('.subTab > a.active',$currentPage).data('type') || 'none'; //日期类型：day week mouth
-            console.clear();
-            console.log(dateType);
-
-            let $flow = $(".flow",$currentPage);
+        /**
+         *
+         * **/
+        flowManager: function (rowType,data) {
+            let $flow = $(".flow",O.$currentPage);
             if ($flow.length > 0){
+                let dateType = $('.subTab > a.active',O.$currentPage).data('type') || 'none'; //日期类型：1:day,2:week,3:mouth
+
                 let chartType = $flow.data("type"),
                     id = $flow.attr("id"),
                     options = {},
                     category = null,
                     series = null;
-
-                if (chartType == 'area'){
-                    category = [1350982413186,1350982413187,1350982413188,1350982413189,1350982413180,1350982413196,1350982413197];
-                    series = [10, 12, 21, 54, 260, 830, 710];
-
-                    options = {
-                        chart: {
-                            type:'area',
-                            events: {
-                                load: function() {
-                                    let series = this.series;
-                                }
-                            }
-                        },
-                        series: [{
-                            name: '累计报事',
-                            color:'#ff6347',
-                            data: series
-                        }],
-                        xAxis:{
-                            categories: category,
-                            labels: {
-                                formatter:function(){
-                                    return Highcharts.dateFormat('%H:%M',this.value);
-                                }
-                            }
-                        },
-                        yAxis:{
-                            labels: {
-                                formatter:function(){
-                                    return this.value;
-                                }
-                            }
-                        },
-                        tooltip:{
-                            backgroundColor: '#ff6347',
-                            formatter:function(){
-                                return  '<b>'+this.series.name+'</b><br/>'+
-                                    '时间点:'+Highcharts.dateFormat('%H:%M',this.x)+'<br/>'+
-                                    '报事量:'+this.y;
-                            }
-                        }
-                    };
-                }else if (chartType=='column'){
-                    category = ['现金','POS','银行托收','转账','支票','微信','支付宝','其他'];
-                    series = [20,23,15,35,38,89,23,56];
-
-                    options = {
-                        chart: {
-                            type: 'column'
-                        },
-                        colors: ['#ff6347'],
-                        xAxis: {
-                            type: 'category',
-                            categories: category
-                        },
-                        tooltip: {
-                            borderColor: Highcharts.getOptions().colors[0],
-                            pointFormat: '<b>{point.y:.1f}</b>'
-                        },
-                        series: [{
-                            name: 'Population',
-                            borderColor: Highcharts.getOptions().colors[0], // enableMouseTracking: false,  //取消鼠标上移效果
-                            color: '#FFE0DA',
-                            data: series,
-                            states:{
-                                hover:{
-                                    enabled:true,//鼠标放上去柱子的状态控制
-                                    color: '#FFE0DA'
-                                }
-                            },
-                            dataLabels: {
-                                enabled: false,
-                                rotation: -90,
-                                color: '#FFFFFF',
-                                align: 'right',
-                                format: '{point.y:.1f}',
-                                y: 10,
-                                style: {
-                                    fontSize: '1.2rem'
-                                }
-                            }
-                        }]
-                    };
-                }else if (chartType=='solidgauge'){
-                    series = 25;
-
-                    options = {
-                        chart: {
-                            type: 'solidgauge'
-                        },
-                        title: {
-                            useHTML : true,
-                            // floating: true,
-                            align: 'center',
-                            verticalAlign:'middle',
-                            text: '<b style="color:#ff6347;font-size: 2.4rem;">'+series+'%</b><br>异常项',
-                            style: {
-                                fontSize: '1.2rem',
-                                textAlign : 'center',
-                                verticalAlign:'middle'
-                            }
-                        },
-                        tooltip: {
-                            enabled: false,
-                            borderWidth: 0,
-                            backgroundColor: 'none',
-                            shadow: false,
-                            style: {
-                                fontSize: '16px'
-                            },
-                            pointFormat: '{series.name}<br><span style="font-size:2em; color: {point.color}; font-weight: bold">{point.y}%</span>',
-                            positioner: function (labelWidth, labelHeight) {
-                                return {
-                                    x: 200 - labelWidth / 2,
-                                    y: 180
-                                };
-                            }
-                        },
-                        pane: {
-                            startAngle: 0,
-                            endAngle: 360,
-                            background: [{
-                                outerRadius: '110%', //112
-                                innerRadius: '90%',  //88
-                                backgroundColor:'#eee',
-                                borderWidth: 0
-                            }]
-                        },
-                        yAxis: {
-                            min: 0,
-                            max: 100,
-                            lineWidth: 0,
-                            tickPositions: []
-                        },
-                        plotOptions: {
-                            solidgauge: {
-                                borderWidth: '7.5%',  //34
-                                dataLabels: {
-                                    enabled: false
-                                },
-                                linecap: 'round',
-                                stickyTracking: false
-                            }
-                        },
-                        series: [{
-                            name: '异常项',
-                            borderColor: Highcharts.getOptions().colors[0],
-                            data: [{
-                                color: Highcharts.getOptions().colors[0],
-                                radius: '100%',
-                                innerRadius: '100%',
-                                y: series
-                            }]
-                        }]
-                    };
-                }
-
                 let $chart = $('#' + id);
 
-                let charts = $chart.highcharts(Highcharts.merge(options,{}));
-            }
+                if(rowType == undefined || rowType == "" || rowType== "null"){
+                    if (chartType == 'area'){
+                        category = [1350982413186,1350982413187,1350982413188];
+                        series = [10, 12, 21];
+                    }else if (chartType=='column'){
+                        category = ['现金','POS','银行托收','转账','支票','微信','支付宝','其他'];
+                        for (let i in data){
+                            data[i] = parseFloat(data[i]);
+                        }
+                        series = [data.cash,data.pos,data.delegate,data.exchange,data.check,(data.wechatOnline+data.wechatOffline),(data.alipayOnline+data.alipayOffline),data.other];
+                    }else if (chartType=='solidgauge'){
+                        series = 50;
+                    }
+                    options = O.flowOption(category,series,chartType);
 
-            //加载表格
-            O.tableManager(index,$currentPage,dateType);
+                    $chart.highcharts(Highcharts.merge(options,{}));
+                }else{
+                    let dd = JSON.stringify({
+                        tranCode : O.tranCode[O.currentIndex],
+                        isEncryption : 0,
+                        bizContent : {
+                            beginDate:'2016-11-05',
+                            endDate:'2016-12-05',
+                            orgId:1050,
+                            grade:1
+                        }
+                    });
+
+                    let loadOption = {
+                        chart: {
+                            type: chartType,
+                            renderTo: id,
+                        }
+                    };
+                    let charts = new Highcharts.Chart(loadOption);
+                    charts.hideNoData();
+                    charts.showLoading();
+
+                    $.ajax({
+                        url : O.postUrl,
+                        type:'POST',
+                        dataType : 'json',
+                        data:dd,
+                        async:true,
+                        success: function (result) {
+                            if (chartType == 'area'){
+                                category = [1350982413186,1350982413187,1350982413188,1350982413189,1350982413180,1350982413196,1350982413197];
+                                series = [10, 12, 21, 54, 260, 830, 710];
+                            }else if (chartType=='column'){
+                                category = ['现金','POS','银行托收','转账','支票','微信','支付宝','其他'];
+                                series = [20,23,15,35,38,89,23,56];
+                            }else if (chartType=='solidgauge'){
+                                series = 25;
+                            }
+                            options = O.flowOption(category,series,chartType);
+
+                            $chart.highcharts(Highcharts.merge(options,{}));
+                        },
+                        error: function (xhr) {
+                            charts.hideLoading();
+                            charts.showNoData();
+                        }
+                    });
+                }
+            }
         },
 
-        /***
+        /**
+         * 图表动态选项
+         * **/
+        flowOption: function (category,series,chartType) {
+            let options = {};
+            if (chartType == 'area'){
+                options = {
+                    chart: {
+                        type:'area',
+                        events: {
+                            load: function() {
+                                let series = this.series;
+                            }
+                        }
+                    },
+                    series: [{
+                        name: '累计报事',
+                        color:'#ff6347',
+                        data: series
+                    }],
+                    xAxis:{
+                        categories: category,
+                        labels: {
+                            formatter:function(){
+                                return Highcharts.dateFormat('%H:%M',this.value);
+                            }
+                        }
+                    },
+                    yAxis:{
+                        labels: {
+                            formatter:function(){
+                                return this.value;
+                            }
+                        }
+                    },
+                    tooltip:{
+                        backgroundColor: '#ff6347',
+                        formatter:function(){
+                            return  '<b>'+this.series.name+'</b><br/>'+
+                                '时间点:'+Highcharts.dateFormat('%H:%M',this.x)+'<br/>'+
+                                '报事量:'+this.y;
+                        }
+                    }
+                };
+            }else if (chartType=='column'){
+                options = {
+                    chart: {
+                        type: 'column'
+                    },
+                    colors: ['#ff6347'],
+                    xAxis: {
+                        type: 'category',
+                        categories: category
+                    },
+                    tooltip: {
+                        borderColor: Highcharts.getOptions().colors[0],
+                        pointFormat: '<b>{point.y:.1f}</b>'
+                    },
+                    series: [{
+                        name: 'Population',
+                        borderColor: Highcharts.getOptions().colors[0], // enableMouseTracking: false,  //取消鼠标上移效果
+                        color: '#FFE0DA',
+                        data: series,
+                        states:{
+                            hover:{
+                                enabled:true,
+                                color: '#FFE0DA'
+                            }
+                        },
+                        dataLabels: {
+                            enabled: false,
+                            rotation: -90,
+                            color: '#FFFFFF',
+                            align: 'right',
+                            format: '{point.y:.1f}',
+                            y: 10,
+                            style: {
+                                fontSize: '1.2rem'
+                            }
+                        }
+                    }]
+                };
+            }else if (chartType=='solidgauge'){
+                options = {
+                    chart: {
+                        type: 'solidgauge'
+                    },
+                    title: {
+                        useHTML : true,
+                        // floating: true,
+                        align: 'center',
+                        verticalAlign:'middle',
+                        text: '<b style="color:#ff6347;font-size: 2.4rem;">'+series+'%</b><br>异常项',
+                        style: {
+                            fontSize: '1.2rem',
+                            textAlign : 'center',
+                            verticalAlign:'middle'
+                        }
+                    },
+                    tooltip: {
+                        enabled: false,
+                        borderWidth: 0,
+                        backgroundColor: 'none',
+                        shadow: false,
+                        style: {
+                            fontSize: '16px'
+                        },
+                        pointFormat: '{series.name}<br><span style="font-size:2em; color: {point.color}; font-weight: bold">{point.y}%</span>',
+                        positioner: function (labelWidth, labelHeight) {
+                            return {
+                                x: 200 - labelWidth / 2,
+                                y: 180
+                            };
+                        }
+                    },
+                    pane: {
+                        startAngle: 0,
+                        endAngle: 360,
+                        background: [{
+                            outerRadius: '110%', //112
+                            innerRadius: '90%',  //88
+                            backgroundColor:'#eee',
+                            borderWidth: 0
+                        }]
+                    },
+                    yAxis: {
+                        min: 0,
+                        max: 100,
+                        lineWidth: 0,
+                        tickPositions: []
+                    },
+                    plotOptions: {
+                        solidgauge: {
+                            borderWidth: '7.5%',  //34
+                            dataLabels: {
+                                enabled: false
+                            },
+                            linecap: 'round',
+                            stickyTracking: false
+                        }
+                    },
+                    series: [{
+                        name: '异常项',
+                        borderColor: Highcharts.getOptions().colors[0],
+                        data: [{
+                            color: Highcharts.getOptions().colors[0],
+                            radius: '100%',
+                            innerRadius: '100%',
+                            y: series
+                        }]
+                    }]
+                };
+            }
+            return options;
+        },
+
+        /**
          * slider index function manager
          * @param index 滑动的当前tab的索引
          * tableManager 函数管理table内容
          * drawFlow 函数管理图表内容
-         * ***/
-        manager: function (index) {
-            O.flowManager(index);
+         * **/
+        manager: function () {
+            O.$currentPage = $(".sliderContentUl > li").eq(O.currentIndex);
+            O.tableManager();
         },
 
-        writeHtml: function (index,data) {
-            let str = '';
-            switch (index){
-                case 0:
-                    str = '<tr><td>客户报事</td><td>123</td><td>80%</td><td>10.00%</td></tr>'+
-                        '<tr><td>客户工单</td><td>123</td><td>90%</td><td>9.00%</td></tr>'+
-                        '<tr><td>内部报事</td><td>12311</td><td>80%</td><td class="red">-0.10%</td></tr>'+
-                        '<tr><td>内部工单</td><td>1233423</td><td>87%</td><td>0.50%</td></tr>';
-                    break;
-                case 1:
-                    str = '<tr><td>实收往年</td><td>123</td><td>80%</td></tr>'+
-                        '<tr><td>实收本年</td><td>123</td><td>90%</td></tr>'+
-                        '<tr><td>预收</td><td>1233423</td><td>87%</td></tr>';
-                    break;
-                case 2:
-                    break;
-                case 3:
-                    str = '<tr><td>应巡检项</td><td>123</td><td>80%</td></tr>'+
-                        '<tr<td>实际完成</td><td>123</td><td>90%</td></tr>'+
-                        '<tr><td>异常项</td><td>12311</td><td class="red">-0.10%</td></tr>';
-                    break;
-                case 4:
-                    break;
-                case 5:
-                    break;
-                case 6:
-                    break;
-                case 7:
-                    break;
-                case 8:
-                    break;
-                default:
-                    break;
-            }
-            return str;
-        },
-
-        writeHtmlTest: function (index,$table) {
+        writeHtml: function ($table) {
             let testData = {
                 "testRow1":{
                     "test1": 123,
@@ -463,9 +559,9 @@
                         let type = $td.attr("type");
                         if (type == "per"){
                             if (testData[i][j] < 0){
-                                $td.addClass("red");
+                                $td.addClass("lowRed");
                             }else {
-                                $td.removeClass("red");
+                                $td.removeClass("lowRed");
                             }
                             $td.html(testData[i][j] + '%');
                         }else{
@@ -478,8 +574,79 @@
     };
 
     (function initialize() {
-        O.slider();
-        O.manager(0);
+        if (TEST){
+            let testJson = {
+                grade : 1,
+                orgId : 1234,
+                authCodeList:[
+                    // {code: "hygj_report_auth_code"}, //****报表****
+                    {code: "hygj_report_postit"}, //报事统计
+                    {code: "hygj_report_charge"}, //缴费统计
+                    {code: "hygj_report_patrol_task"}, //巡检任务统计
+                    // {code: "hygj_report_patrol_item"}, //巡检项统计
+                    {code: "hygj_report_online"}, //上线统计
+                    // {code: "hygj_report_wxonline"}, //微信上线统计
+                    {code: "hygj_report_wxusers_analysis"}, //微信用户统计
+                    // {code: "hygj_report_wx_operation"} //微信运营统计
+                ]
+            };
+            testJson = JSON.stringify(testJson);
+            init(testJson);
+        }else if (TESTALL){
+            $("#loading").hide();
+            $("#slider,.mainTabWrap").show();
+            O.slider();
+            O.manager();
+        }
     }());
+
+    /**
+     * json:{
+                grade : 1,
+                orgId : 1234,
+                authCodeList:[
+                    {code: "hygj_report_auth_code"}, //****报表****
+                    {code: "hygj_report_postit"}, //报事统计
+                    {code: "hygj_report_charge"}, //缴费统计
+                    {code: "hygj_report_patrol_task"}, //巡检任务统计
+                    {code: "hygj_report_patrol_item"}, //巡检项统计
+                    {code: "hygj_report_online"}, //上线统计
+                    {code: "hygj_report_wxonline"}, //微信上线统计
+                    {code: "hygj_report_wxusers_analysis"}, //微信用户统计
+                    {code: "hygj_report_wx_operation"} //微信运营统计
+                ]
+            };
+     * **/
+    function init(respone) {
+        let json = $.parseJSON(respone);
+        let $sliderContentUl = $(".sliderContentUl > li"),
+            $pageNav = $("#pageNav > li");
+
+        $sliderContentUl.each(function (i) {
+            let _this = $(this),
+                isDelete = true;
+            let code = "hygj_report_" + _this.data("name");
+            $.each(json.authCodeList,function (j) {
+                if (code == json.authCodeList[j].code){
+                    isDelete = false;
+                    return false;
+                }
+            });
+
+            if (isDelete){
+                $sliderContentUl.eq(i).remove();
+                $pageNav.eq(i).remove();
+            }
+        });
+
+        $("#pageNav > li").eq(0).addClass("active");
+
+        $("#loading").hide();
+        $("#slider,.mainTabWrap").show();
+
+        O.slider();
+        O.manager();
+    }
+
 }
 

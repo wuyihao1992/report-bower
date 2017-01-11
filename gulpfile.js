@@ -88,11 +88,10 @@ gulp.task('framework', function() {
         ])
         .pipe(gulp.dest('assets/fonts/'));
 
-    gulp.src([
-        'bower_components/layer/src/**/*'
-    ])
-        .pipe(gulp.dest('assets/layer'));
-
+    // gulp.src([
+    //     'bower_components/layer/src/**/*'
+    // ])
+    //     .pipe(gulp.dest('assets/layer'));
 
 });
 

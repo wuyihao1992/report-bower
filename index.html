@@ -15,43 +15,54 @@
 </head>
 
 <body style="overflow-y: scroll;overflow-x: hidden;">
-	<div style="display: none;" name="tests">test</div>
-	<div class="sliderContent" id="slider">
+	<div id="loading" class="cell">
+		<div class="card">
+			<span class="gauge-loader">Loading…</span>
+		</div>
+		<div class="text">Loading...</div>
+	</div>
+
+	<div class="sliderContent" id="slider" style="display: none;">
 		<ul class="sliderContentUl">
-			<li>
+			<li data-name="postit">
 				<div class="wrap">
 			        <div class="header">报事统计<span class="nowDate">(2016/12/22)</span></div>
 			        <div class="subSlider">
 			            <div class="subTab">
-			                <a href="javascript:;" class="active" data-type="day">日</a>
-			                <a href="javascript:;" data-type="week">周</a>
-			                <a href="javascript:;" data-type="mouth">月</a>
+			                <a href="javascript:;" class="active" data-type="1">日</a>
+			                <a href="javascript:;" data-type="2">周</a>
+			                <a href="javascript:;" data-type="3">月</a>
 			            </div>
 						<div class="subContent">
-				            <table>
+				            <table class="clickTrue">
 				                <thead>
-				                    <tr><td></td><td>当期</td><td>完成率</td><td>同比</td></tr>
+									<tr>
+										<td></td>
+										<td>当期</td>
+										<td>完成率</td>
+										<td class="rate">增长率<span class="q">&nbsp;?&nbsp;</span><!--<i>test</i>--></td>
+									</tr>
 				                </thead>
 				                <tbody>
-				                    <tr row="testRow1">
+				                    <tr row="testRow1" class="active">
 				                        <td>客户报事</td>
 				                        <td name="test1"><!--123-->/</td>
 				                        <td name="test2" type="per"><!--80%-->/</td>
 				                        <td name="test3" type="per"><!--10.00%-->/</td>
 				                    </tr>
-				                    <tr row="">
+				                    <tr row="testRow2">
 				                        <td>客户工单</td>
 				                        <td name="">/</td>
 				                        <td name="" type="per">/</td>
 				                        <td name="" type="per">/</td>
 				                    </tr>
-				                    <tr row="">
+				                    <tr row="testRow3">
 				                        <td>内部报事</td>
 				                        <td name="">/</td>
 				                        <td name="" type="per">/</td>
 				                        <td name="" type="per">/</td>
 				                    </tr>
-				                    <tr row="">
+				                    <tr row="testRow4">
 				                        <td>内部工单</td>
 				                        <td name="">/</td>
 				                        <td name="" type="per">/</td>
@@ -64,35 +75,35 @@
 					<div class="flow flow-1" id="flow-1" data-name="" data-type="area"></div>
 			    </div>					
 			</li>
-			<li style="display: none;">
+			<li data-name="charge" style="display: none;">
 				<div class="wrap">
 			        <div class="header">缴费统计<span class="nowDate">(2016/12/22)</span></div>
 			        <div class="subSlider">
 			            <div class="subTab">
-							<a href="javascript:;" class="active" data-type="day">日</a>
-							<a href="javascript:;" data-type="week">周</a>
-							<a href="javascript:;" data-type="mouth">月</a>
+							<a href="javascript:;" class="active" data-type="1">日</a>
+							<a href="javascript:;" data-type="2">周</a>
+							<a href="javascript:;" data-type="3">月</a>
 			            </div>
 						<div class="subContent">
 				            <table>
 				                <thead>
-				                    <tr><td> </td><td>当期</td><td>同比</td></tr>
+				                    <tr><td> </td><td>当期</td><td>增长率</td></tr>
 				                </thead>
 				                <tbody>
-				                    <tr row="testRow2">
+				                    <tr row="">
 				                        <td>实收往年</td>
-				                        <td name="test1"><!--123-->/</td>
-				                        <td name="" type="per"><!--80%-->/</td>
+				                        <td name="thisOld"><!--123-->/</td>
+				                        <td name="thisOldRate" type="per"><!--80%-->/</td>
 				                    </tr>
 				                    <tr row="">
 				                        <td>实收本年</td>
-				                        <td name="">/</td>
-				                        <td name="" type="per">/</td>
+				                        <td name="thisNow">/</td>
+				                        <td name="thisNowRate" type="per">/</td>
 				                    </tr>
 				                    <tr row="">
 				                        <td>预收</td>
-				                        <td name="">/</td>
-				                        <td name="" type="per">/</td>
+				                        <td name="thisPrepay">/</td>
+				                        <td name="thisPrepayRate" type="per">/</td>
 				                    </tr>
 				                </tbody>
 				            </table>
@@ -101,19 +112,19 @@
 					<div class="flow flow-2" id="flow-2" data-name="" data-type="column"></div>
 			    </div>					
 			</li>
-			<li style="display: none;">
+			<li data-name="patrol_task" style="display: none;">
 				<div class="wrap">
 			        <div class="header">巡检任务统计<span class="nowDate">(2016/12/22)</span></div>
 			        <div class="subSlider">
 			            <div class="subTab">
-							<a href="javascript:;" class="active" data-type="day">日</a>
-							<a href="javascript:;" data-type="week">周</a>
-							<a href="javascript:;" data-type="mouth">月</a>
+							<a href="javascript:;" class="active" data-type="1">日</a>
+							<a href="javascript:;" data-type="2">周</a>
+							<a href="javascript:;" data-type="3">月</a>
 			            </div>
 						<div class="subContent">
 				            <table>
 				                <thead>
-				                    <tr><td> </td><td>当期</td><td>同比</td></tr>
+				                    <tr><td> </td><td>当期</td><td>增长率</td></tr>
 				                </thead>
 				                <tbody>
 				                    <tr row="">
@@ -126,13 +137,8 @@
 				                        <td name="">/</td>
 				                        <td name="" type="per">/</td>
 				                    </tr>
-				                </tbody>
-				            </table>
-							<table>
-								<thead>
-									<tr><td> </td><td>当期</td><td>同比</td></tr>
-								</thead>
-								<tbody>
+
+									<tr class="head"><td> </td><td>当期</td><td>增长率</td></tr>
 									<tr row="">
 										<td>平均耗时</td>
 										<td name="" type="timeCount"><!--0:19:12-->/</td>
@@ -143,25 +149,45 @@
 										<td name="">/</td>
 										<td name="" type="per">/</td>
 									</tr>
+
+				                </tbody>
+				            </table>
+							<!--
+							<table>
+								<thead>
+									<tr><td> </td><td>当期</td><td>增长率</td></tr>
+								</thead>
+								<tbody>
+									<tr row="">
+										<td>平均耗时</td>
+										<td name="" type="timeCount">&lt;!&ndash;0:19:12&ndash;&gt;/</td>
+										<td name="" type="per">&lt;!&ndash;80%&ndash;&gt;/</td>
+									</tr>
+									<tr row="">
+										<td>完成率</td>
+										<td name="">/</td>
+										<td name="" type="per">/</td>
+									</tr>
 								</tbody>
 							</table>
+							-->
 				        </div>			            
 			        </div>
 			    </div>
 			</li>
-			<li style="display: none;">
+			<li data-name="patrol_item" style="display: none;">
 				<div class="wrap">
 			        <div class="header">巡检项统计<span class="nowDate">(2016/12/22)</span></div>
 			        <div class="subSlider">
 			            <div class="subTab">
-							<a href="javascript:;" class="active" data-type="day">日</a>
-							<a href="javascript:;" data-type="week">周</a>
-							<a href="javascript:;" data-type="mouth">月</a>
+							<a href="javascript:;" class="active" data-type="1">日</a>
+							<a href="javascript:;" data-type="2">周</a>
+							<a href="javascript:;" data-type="3">月</a>
 			            </div>
 						<div class="subContent">
 				            <table>
 				                <thead>
-				                    <tr><td> </td><td>当期</td><td>同比</td></tr>
+				                    <tr><td> </td><td>当期</td><td>增长率</td></tr>
 				                </thead>
 				                <tbody>
 				                    <tr row="">
@@ -186,18 +212,18 @@
 					<div class="flow flow-4" id="flow-4" data-name="" data-type="solidgauge"></div>
 			    </div>					
 			</li>	
-			<li style="display: none;">
+			<li data-name="online" style="display: none;">
 				<div class="wrap">
 			        <div class="header">上线统计<span class="nowDate">(2016/12/22)</span></div>
 			        <div class="subSlider vertical-par square">
 						<div class="row vertical-chi">
 							<div class="horizon-par">
 								<div class="horizon-chi left">
-									<p class="red" name="">111</p>
+									<p class="lowRed" name="">111</p>
 									<p>上线项目<span class="small">(个)</span></p>
 								</div>
 								<div class="horizon-chi">
-									<p class="red" name="">1122231</p>
+									<p class="lowRed" name="">1122231</p>
 									<p>接管户数<span class="small">(户)</span></p>
 								</div>
 							</div>
@@ -205,11 +231,11 @@
 						<div class="row vertical-chi">
 							<div class="horizon-par">
 								<div class="horizon-chi left">
-									<p class="red" name="">111.00</p>
+									<p class="lowRed" name="">111.00</p>
 									<p>接管面积<span class="small">(m<sup>2</sup>)</span></p>
 								</div>
 								<div class="horizon-chi">
-									<p class="red" name="">111</p>
+									<p class="lowRed" name="">111</p>
 									<p>员工人数<span class="small">(人)</span></p>
 								</div>
 							</div>
@@ -217,7 +243,7 @@
 						<div class="row vertical-chi borBotNone">
 							<div class="horizon-par">
 								<div class="horizon-chi left">
-									<p class="red" name="">111</p>
+									<p class="lowRed" name="">111</p>
 									<p>登录次数<span class="small">(次)</span></p>
 								</div>
 								<div class="horizon-chi"></div>
@@ -226,18 +252,18 @@
 			        </div>
 			    </div>
 			</li>	
-			<li style="display: none;">
+			<li data-name="wxonline" style="display: none;">
 				<div class="wrap">
 			        <div class="header">微信上线概括<span class="nowDate">(截止2016/12/22)</span></div>
 			        <div class="subSlider vertical-par square">
 						<div class="row vertical-chi">
 							<div class="horizon-par">
 								<div class="horizon-chi left">
-									<p class="red" name="">111</p>
+									<p class="lowRed" name="">111</p>
 									<p>录入商家<span class="small">(个)</span></p>
 								</div>
 								<div class="horizon-chi">
-									<p class="red" name="">1122231</p>
+									<p class="lowRed" name="">1122231</p>
 									<p>发布广告<span class="small">(户)</span></p>
 								</div>
 							</div>
@@ -245,11 +271,11 @@
 						<div class="row vertical-chi">
 							<div class="horizon-par">
 								<div class="horizon-chi left">
-									<p class="red" name="">111</p>
+									<p class="lowRed" name="">111</p>
 									<p>微信报事<span class="small">(单)</span></p>
 								</div>
 								<div class="horizon-chi">
-									<p class="red" name="">111</p>
+									<p class="lowRed" name="">111</p>
 									<p>微信缴费<span class="small">(元)</span></p>
 								</div>
 							</div>
@@ -260,19 +286,19 @@
 			        </div>
 			    </div>					
 			</li>
-			<li style="display: none;">
+			<li data-name="wxusers_analysis" style="display: none;">
 				<div class="wrap">
 			        <div class="header">微信用户分析<span class="nowDate">(2016/12/22-2016/12/25)</span></div>
 			        <div class="subSlider">
 			            <div class="subTab">
-							<a href="javascript:;" class="active" data-type="day">日</a>
-							<a href="javascript:;" data-type="week">周</a>
-							<a href="javascript:;" data-type="mouth">月</a>
+							<a href="javascript:;" class="active" data-type="1">日</a>
+							<a href="javascript:;" data-type="2">周</a>
+							<a href="javascript:;" data-type="3">月</a>
 			            </div>
 						<div class="subContent">
 				            <table>
 				                <thead>
-				                    <tr><td> </td><td>当期</td><td>同比</td></tr>
+				                    <tr><td> </td><td>当期</td><td>增长率</td></tr>
 				                </thead>
 				                <tbody>
 				                    <tr row="">
@@ -311,22 +337,22 @@
 			        </div>
 			    </div>					
 			</li>
-			<li style="display: none;">
+			<li data-name="wx_operation" style="display: none;">
 				<div class="wrap">
 			        <div class="header">微信运营情况<span class="nowDate">(2016/12/22)</span></div>
 			        <div class="subSlider">
 			            <div class="subTab">
-							<a href="javascript:;" class="active" data-type="day">日</a>
-							<a href="javascript:;" data-type="week">周</a>
-							<a href="javascript:;" data-type="mouth">月</a>
+							<a href="javascript:;" class="active" data-type="1">日</a>
+							<a href="javascript:;" data-type="2">周</a>
+							<a href="javascript:;" data-type="3">月</a>
 			            </div>
 						<div class="subContent">
 				            <table>
 				                <thead>
-				                    <tr><td> </td><td>当期</td><td>同比</td></tr>
+				                    <tr><td> </td><td>当期</td><td>增长率</td></tr>
 				                </thead>
 				                <tbody>
-				                    <tr row="">
+				                    <tr row="kehubaoshi">
 				                        <td>客户报事</td>
 				                        <td name=""><!--855-->/</td>
 				                        <td name="" type="per"><!--85%-->/</td>
@@ -360,9 +386,9 @@
 		</ul>    
 	</div>
     
-    <div class="mainTabWrap">
+    <div class="mainTabWrap" style="display: none;">
         <ul class="mainTab" id="pageNav">
-            <li class="active">1</li>
+            <li>1</li>
             <li>2</li>
             <li>3</li>
             <li>4</li>
@@ -374,6 +400,7 @@
     </div>
 
 	<script src="assets/js/framework.js?v=${STARTUP}" ></script>
+	<!--<script src="assets/layer/layer.js?v=${STARTUP}" ></script>-->
     <script src="js/index.js"></script>
 </body>
 </html>

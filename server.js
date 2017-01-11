@@ -5,9 +5,10 @@ var http = require('http');
 
 var proxySrv = function(req, res) {
 	var options = {
-		hostname: 'lcs.com',
-		port: 8086,
-		path: req.url.replace(/^\/api/,''),
+		hostname: 'poly.hengtech.com.cn',
+		port: 80,
+		// path: req.url.replace(/^\/api/,''),
+        path: '/pmsSrv' +  req.url,
 		method: 'POST'
 	};
 
