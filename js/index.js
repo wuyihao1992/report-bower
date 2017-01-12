@@ -129,7 +129,7 @@
     /**
      * #defined TEST bool {true:"devDependencies",false:"dependencies"}
      * **/
-    const TEST = false;
+    const TEST = true;
     const TESTALL = false;
 
     let O = {
@@ -140,10 +140,13 @@
         $currentPage: null,
         currentDateType: 1,
 
+        orgId: 91492,
+        grade: 4,
+
         /**
          * [报事,缴费,巡检任务,巡检项,上线统计,微信上线概括,微信用户分析,微信运营情况]
          * **/
-        tranCode:[3007,2413,0,0,0,0,0,0],
+        tranCode:[],
 
         slider: function () {
             let control = navigator.control || {};
@@ -205,101 +208,79 @@
         },
 
         tableManager: function () {
-            let $subContent = $(".subContent",O.$currentPage);
+            let $subContent = $(".subContent",O.$currentPage),
+                dateType = $('.subTab > a.active',O.$currentPage).data('type') || 1,
+                timer = (new Date()).pattern("yyyy-MM-dd");
             let $table = $("table",$subContent);
-            if ($table.length > 0){
-                let dateType = $('.subTab > a.active',O.$currentPage).data('type') || 'none';
-                console.clear();
-                console.log(dateType);
+            console.log(dateType);
 
-                let $tbody = $("tbody",$table[0]);
-                let $activeTr = $("tr.active",$tbody);
-                let rowType = $activeTr.attr("row");
-                console.log(rowType);
-
-                O.writeHtml($table);
-
-                let testData = JSON.stringify({
-                    tranCode : O.tranCode[O.currentIndex],
-                    isEncryption : 0,
-                    bizContent : {
-                        beginDate:'2016-11-05',
-                        endDate:'2016-12-05',
-                        orgId:1050,
-                        grade:1
-                    }
-                });
-
-                /*
-                let $flow = $(".flow",O.$currentPage);
-                if ($flow.length > 0){
-                    let id = $flow.attr("id");
-                    let loadOption = {
-                        chart: {
-                            type: 'area',
-                            renderTo: id,
-                        }
-                    };
-                    let charts = new Highcharts.Chart(loadOption);
-                    charts.hideNoData();
-                    charts.showLoading();
+            let jsonData = JSON.stringify({
+                tranCode : O.tranCode[O.currentIndex],
+                isEncryption : 0,
+                bizContent : {
+                    date: timer,
+                    orgId: O.orgId,
+                    grade: O.grade,
+                    type : dateType
                 }
-                */
+            });
 
-                $.ajax({
-                    url : O.postUrl,
-                    type:'POST',
-                    dataType : 'json',
-                    data:testData,
-                    async:true,
-                    complete:function (result) {
-                        console.info(result.responseJSON);
-                        // let data = result.responseJSON.data;
-                        if (rowType != undefined){
-                            O.flowManager(rowType,{}); //ajax请求
-                        }else{
-                            let data = {
-                                "thisOld" : "1111.12",
-                                "thisPrepay" : "123.12",
-                                "thisNow" : "456.12",
-                                "thisOld" : "236.22",
-                                "thisPrepay" : "444.11",
-                                "thisNow" : "1111.11",
-                                "cash" : "236.22",
-                                "pos" : "236.22",
-                                "delegate" : "236.22",
-                                "exchange" : "236.22",
-                                "check" : "236.22",
-                                "wechatOffline" : "236.22",
-                                "alipayOffline" : "236.22",
-                                "wechatOnline" : "236.22",
-                                "alipayOnline" : "236.22",
-                                "to_account" : "236.22",
-                                "other" : "236.22",
-                            };
-                            O.flowManager("null",data);
+            $.ajax({
+                url : O.postUrl,
+                type:'POST',
+                dataType : 'json',
+                data:jsonData,
+                async:true,
+                complete:function (result) {
+                    console.info(result.responseJSON);
+                    if (result.responseJSON.msgCode == 0){
+                        let  data = result.responseJSON.bizContent;
+                        for (let key in data){
+                            data[key] = parseFloat(data[key]);
                         }
-                    },
-                    error: function (xhr) {
 
+                        if ($table.length > 0){
+                            let $tbody = $("tbody",$table[0]);
+                            let $activeTr = $("tr.active",$tbody);
+                            let rowType = $activeTr.attr("row");
+                            console.log(rowType);
+
+                            O.writeHtml($table,data);
+
+                            if (rowType != undefined){
+                                O.flowManager(rowType,{});  //ajax请求
+                            }else{
+                                O.flowManager("null",data);
+                            }
+
+                        }else{
+                            let $square = $(".square",O.$currentPage);
+                            O.writeHtml($square,data);
+                        }
                     }
-                });
-            }
+                },
+                error: function (xhr) {
+                    O.flowManager("null",{});
+                }
+            });
+
+
+
         },
 
         /**
-         *
+         * 图表封装
          * **/
         flowManager: function (rowType,data) {
             let $flow = $(".flow",O.$currentPage);
             if ($flow.length > 0){
-                let dateType = $('.subTab > a.active',O.$currentPage).data('type') || 'none'; //日期类型：1:day,2:week,3:mouth
+                let dateType = $('.subTab > a.active',O.$currentPage).data('type') || 1; //日期类型：1:day,2:week,3:mouth
 
                 let chartType = $flow.data("type"),
                     id = $flow.attr("id"),
                     options = {},
-                    category = null,
-                    series = null;
+                    category = [],
+                    series = [];
                 let $chart = $('#' + id);
 
                 if(rowType == undefined || rowType == "" || rowType== "null"){
@@ -308,9 +289,6 @@
                         series = [10, 12, 21];
                     }else if (chartType=='column'){
                         category = ['现金','POS','银行托收','转账','支票','微信','支付宝','其他'];
-                        for (let i in data){
-                            data[i] = parseFloat(data[i]);
-                        }
                         series = [data.cash,data.pos,data.delegate,data.exchange,data.check,(data.wechatOnline+data.wechatOffline),(data.alipayOnline+data.alipayOffline),data.other];
                     }else if (chartType=='solidgauge'){
                         series = 50;
@@ -319,14 +297,15 @@
 
                     $chart.highcharts(Highcharts.merge(options,{}));
                 }else{
-                    let dd = JSON.stringify({
+                    let timer = (new Date()).pattern("yyyy-MM-dd");
+                    let subData = JSON.stringify({
                         tranCode : O.tranCode[O.currentIndex],
                         isEncryption : 0,
                         bizContent : {
-                            beginDate:'2016-11-05',
-                            endDate:'2016-12-05',
-                            orgId:1050,
-                            grade:1
+                            date: timer,
+                            orgId: O.orgId,
+                            grade: O.grade,
+                            type : dateType
                         }
                     });
 
@@ -344,9 +323,10 @@
                         url : O.postUrl,
                         type:'POST',
                         dataType : 'json',
-                        data:dd,
+                        data: subData,
                         async:true,
                         success: function (result) {
+                            //假数据测试
                             if (chartType == 'area'){
                                 category = [1350982413186,1350982413187,1350982413188,1350982413189,1350982413180,1350982413196,1350982413197];
                                 series = [10, 12, 21, 54, 260, 830, 710];
@@ -536,7 +516,101 @@
             O.tableManager();
         },
 
-        writeHtml: function ($table) {
+        /**
+         * 表格数据填充
+         * **/
+        writeHtml: function ($table,data) {
+            if (data == undefined || data == null || data == {}){
+                return;
+            }
+            let tableName = $table.data("name") || "null";
+            console.log("tableName:"+tableName);
+            switch (tableName){
+                case "postit":
+
+                    break;
+                case "charge":
+                    data.thisOldRate = O.upRate(data.thisOld,data.passOld);
+                    data.thisNowRate = O.upRate(data.thisNow,data.passNow);
+                    data.thisPrepayRate = O.upRate(data.thisPrepay,data.passPrepay);
+                    break;
+                case "patrol_task":
+                    data.taskCountRate = O.upRate(data.taskCount,data.pre_taskCount);
+                    data.taskCompleteCountRate = O.upRate(data.taskCompleteCount,data.pre_taskCompleteCount);
+
+                    let taskRangeTime = O.rangeRate(data.time,data.taskCompleteCount);
+                    data.taskRangeTime = taskRangeTime;
+
+                    let taskRangeTimeRate = O.upRate(taskRangeTime,O.rangeRate(data.pre_time,data.pre_taskCompleteCount));
+                    data.taskRangeTimeRate = taskRangeTimeRate;
+
+                    let completeRate = O.rangeRate(data.taskCompleteCount,data.taskCount);
+                    data.completeRate = completeRate;
+
+                    let passCompleteRate = O.upRate(completeRate,O.rangeRate(data.pre_taskCompleteCount,data.pre_taskCount));
+                    data.passCompleteRate = passCompleteRate;
+                    break;
+                case "patrol_item":
+                    data.inspectCountRate = O.upRate(data.inspectCount,data.pre_inspectCount);
+                    data.inspectCompleteCountRate = O.upRate(data.inspectCompleteCount,data.pre_inspectCompleteCount);
+                    data.inspectAbnormalRate = O.upRate(data.inspectAbnormal,data.pre_inspectAbnormal);
+                    break;
+                case "online":
+
+                    break;
+                case "wxonline":
+
+                    break;
+                case "wxusers_analysis":
+
+                    break;
+                case "wx_operation":
+
+                    break;
+                default:
+                    break;
+            }
+
+            // let $tr = $('[row="'+i+'"]',$table);
+            let $tr = $('tbody tr',$table) || $('.lowRed',$table);
+            for (let k in data){
+                let  $td = $('[name="'+k+'"]',$tr);
+                let type = $td.attr("type");
+                if (type == "per"){
+                    if (data[k] < 0){
+                        $td.addClass("lowRed");
+                    }else {
+                        $td.removeClass("lowRed");
+                    }
+                    $td.html((data[k]*100) + '%');
+                }else if (type == "timeCount"){
+                    //时间转换
+                    $td.html(data[k] + '时间转换');
+                }else{
+                    $td.html(data[k]);
+                }
+            }
+        },
+
+        /**
+         * 增长率计算
+         * 公式：(本期-上期)/上期
+         * return float
+         * **/
+        upRate: function (a,b) {
+            return (b<=0 || b==null || b==undefined || b ==NaN)?(a>0?100:0):((a-b)/b);
+        },
+
+        /**
+         * 当期计算
+         * 公式：完成数/总数
+         * return float
+         * **/
+        rangeRate : function (a,b) {
+            return (b<=0 || b==null || b==undefined || b ==NaN)?(a>0?100:0):(a/b);
+        },
+        
+        writeHtmlTest: function ($table) {
             let testData = {
                 "testRow1":{
                     "test1": 123,
@@ -554,6 +628,7 @@
                 for (let i in testData){
                     let $tr = $('[row="'+i+'"]',_this);
                     for (let j in testData[i]){
+                        testData[i][j] = parseFloat(testData[i][j]);
                         let  $td = $('[name="'+j+'"]',$tr);
                         // let type = $td.data("type");
                         let type = $td.attr("type");
@@ -575,11 +650,12 @@
 
     (function initialize() {
         if (TEST){
+            $("#loading .text").html("Testing,Please wait...");
             let testJson = {
-                grade : 1,
-                orgId : 1234,
+                grade : 4,
+                orgId : 91492,
                 authCodeList:[
-                    // {code: "hygj_report_auth_code"}, //****报表****
+                    // {code: "hygj_report"}, //****报表****
                     {code: "hygj_report_postit"}, //报事统计
                     {code: "hygj_report_charge"}, //缴费统计
                     {code: "hygj_report_patrol_task"}, //巡检任务统计
@@ -591,9 +667,17 @@
                 ]
             };
             testJson = JSON.stringify(testJson);
-            init(testJson);
+
+            let xxxx = '{"grade":4,"orgId":100960,"authCodeList":[{"code":"hygj_report_auth_code"},{"code":"hygj_report_postit"},{"code":"hygj_report_charge"},{"code":"hygj_report_patrol_task"},{"code":"hygj_report_patrol_item"},{"code":"hygj_report_online"},{"code":"hygj_report_wxonline"},{"code":"hygj_report_wxusers_analysis"},{"code":"hygj_report_wx_operation"}]}'
+            init(xxxx);
         }else if (TESTALL){
-            $("#loading").hide();
+            O.tranCode = [3020,2413,3020,3020,0,0,0,0];
+            O.grade = 4;
+            O.orgId = 91492;
+            let $loading = $("#loading");
+            $(".text",$loading).html("Testing,Please wait...");
+            $("#pageNav > li").eq(0).addClass("active");
+            $loading.hide();
             $("#slider,.mainTabWrap").show();
             O.slider();
             O.manager();
@@ -618,34 +702,98 @@
             };
      * **/
     function init(respone) {
-        let json = $.parseJSON(respone);
-        let $sliderContentUl = $(".sliderContentUl > li"),
-            $pageNav = $("#pageNav > li");
+        let json = $.parseJSON(respone),
+            $slider = $("#slider"),
+            $mainTabWrap = $(".mainTabWrap");
+        let $sliderContentUl = $(".sliderContentUl > li",$slider),
+            $pageNav = $("#pageNav > li",$mainTabWrap);
+        let tempTranCode = [3020,2413,3020,3020,4,5,6,7];
+
+        O.grade = json.grade;
+        O.orgId = json.orgId;
+
+        let jsonCode = json.authCodeList;
+        let isd = [];
 
         $sliderContentUl.each(function (i) {
-            let _this = $(this),
-                isDelete = true;
+            let _this = $(this);
             let code = "hygj_report_" + _this.data("name");
-            $.each(json.authCodeList,function (j) {
-                if (code == json.authCodeList[j].code){
+            let isDelete = true;
+
+            for (let k in jsonCode){
+                if (code == jsonCode[k].code){
+                    isDelete = false;
+                    break;
+                }
+            }
+
+            isd.push(isDelete);
+
+            if (isDelete){
+                $sliderContentUl.eq(i).remove();
+                $pageNav.eq(i).remove();
+                // $sliderContentUl.eq(k).attr("delete",true);
+                // $pageNav.eq(k).attr("delete",true);
+            }else{
+                O.tranCode.push(tempTranCode[i]);
+            }
+
+        });
+
+        /*
+         let jsonCode = [];
+         for (var j in json.authCodeList){
+             if (json.authCodeList[j].code != "hygj_report_auth_code"){
+                jsonCode.push(json.authCodeList[j].code);
+             }
+         }
+
+        for (let k in jsonCode){
+            let isDelete = true;
+
+            $sliderContentUl.each(function () {
+                let _this = $(this);
+                let code = "hygj_report_" + _this.data("name");
+
+                if (code == jsonCode[k].code){
                     isDelete = false;
                     return false;
                 }
             });
 
-            if (isDelete){
-                $sliderContentUl.eq(i).remove();
-                $pageNav.eq(i).remove();
-            }
-        });
+            isd.push(isDelete);
 
-        $("#pageNav > li").eq(0).addClass("active");
+            if (isDelete){
+                $sliderContentUl.eq(k).remove();
+                $pageNav.eq(k).remove();
+                // $sliderContentUl.eq(k).attr("delete",true);
+                // $pageNav.eq(k).attr("delete",true);
+            }else{
+                O.tranCode.push(tempTranCode[k]);
+            }
+        }
+        */
+
+        console.info(jsonCode);
+        console.info(isd);
+        console.log(O.tranCode);
+
+        $("#pageNav > li",$mainTabWrap).eq(0).addClass("active");
 
         $("#loading").hide();
-        $("#slider,.mainTabWrap").show();
+        $slider.show();
+        $mainTabWrap.show();
+
+        // return;
 
         O.slider();
         O.manager();
+
+        // setTimeout(function () {
+        //     O.slider();
+        //     O.manager();
+        // },800);
+
     }
 
 }

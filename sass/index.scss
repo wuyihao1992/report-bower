@@ -208,9 +208,10 @@ $lowRed:#FE8A77;
                     border: $border;
                     color: #fff;
                     border-radius: 4px;
-                    left: 50%;
+                    left: 20%;
                     transform: translate(-50%,-50%);
                     bottom: -8vh;
+                    opacity: 0.88;
 
                     &:before,&:after{
                         display: block;
@@ -218,12 +219,21 @@ $lowRed:#FE8A77;
                     }
 
                     &:before{
-
+                        content: "";
+                        width: 0;
+                        height: 0;
+                        border-left: 12px solid transparent;
+                        border-right: 6px solid transparent;
+                        border-bottom: 16px solid tomato;
+                        top: -2px;
+                        left: 76%;
+                        transform: translate(-50%,-50%);
                     }
                     &:after{
 
                     }
                 }
+
             }
         }
 
