@@ -204,6 +204,7 @@ $lowRed:#FE8A77;
                     display: inline-block;
                     width: 100px;
                     height: 40px;
+                    line-height: 40px;
                     background-color: $deepRed; //#FFE0DA
                     border: $border;
                     color: #fff;
@@ -212,6 +213,7 @@ $lowRed:#FE8A77;
                     transform: translate(-50%,-50%);
                     bottom: -8vh;
                     opacity: 0.88;
+                    font-size: 0.4rem;
 
                     &:before,&:after{
                         display: block;
