@@ -26,7 +26,7 @@
 		<ul class="sliderContentUl">
 			<li data-name="postit">
 				<div class="wrap">
-			        <div class="header">报事统计<span class="nowDate">(2016/12/22)</span></div>
+			        <div class="header">报事统计<span class="nowDate">(0000/00/00)</span></div>
 			        <div class="subSlider">
 			            <div class="subTab">
 			                <a href="javascript:;" class="active" data-type="1">日</a>
@@ -44,27 +44,27 @@
 									</tr>
 				                </thead>
 				                <tbody>
-				                    <tr row="testRow1" class="active">
+				                    <tr row="1" numType="1" class="active">
 				                        <td>客户报事</td>
-				                        <td name="test1"><!--123-->/</td>
+				                        <td name="complete1"><!--123-->/</td>
 				                        <td name="test2" type="per"><!--80%-->/</td>
 				                        <td name="test3" type="per"><!--10.00%-->/</td>
 				                    </tr>
-				                    <tr row="testRow2">
+				                    <tr row="2" numType="2">
 				                        <td>客户工单</td>
-				                        <td name="">/</td>
+				                        <td name="complete2">/</td>
 				                        <td name="" type="per">/</td>
 				                        <td name="" type="per">/</td>
 				                    </tr>
-				                    <tr row="testRow3">
+				                    <tr row="3" numType="3">
 				                        <td>内部报事</td>
-				                        <td name="">/</td>
+				                        <td name="complete3">/</td>
 				                        <td name="" type="per">/</td>
 				                        <td name="" type="per">/</td>
 				                    </tr>
-				                    <tr row="testRow4">
+				                    <tr row="4" numType="4">
 				                        <td>内部工单</td>
-				                        <td name="">/</td>
+				                        <td name="complete4">/</td>
 				                        <td name="" type="per">/</td>
 				                        <td name="" type="per">/</td>
 				                    </tr>
@@ -77,7 +77,7 @@
 			</li>
 			<li data-name="charge" style="display: none;">
 				<div class="wrap">
-			        <div class="header">缴费统计<span class="nowDate">(2016/12/22)</span></div>
+			        <div class="header">缴费统计<span class="nowDate">()</span></div>
 			        <div class="subSlider">
 			            <div class="subTab">
 							<a href="javascript:;" class="active" data-type="1">日</a>
@@ -118,7 +118,7 @@
 			</li>
 			<li data-name="patrol_task" style="display: none;">
 				<div class="wrap">
-			        <div class="header">巡检任务统计<span class="nowDate">(2016/12/22)</span></div>
+			        <div class="header">巡检任务统计<span class="nowDate">(0000/00/00)</span></div>
 			        <div class="subSlider">
 			            <div class="subTab">
 							<a href="javascript:;" class="active" data-type="1">日</a>
@@ -160,32 +160,13 @@
 
 				                </tbody>
 				            </table>
-							<!--
-							<table>
-								<thead>
-									<tr><td> </td><td>当期</td><td>增长率</td></tr>
-								</thead>
-								<tbody>
-									<tr row="">
-										<td>平均耗时</td>
-										<td name="" type="timeCount">&lt;!&ndash;0:19:12&ndash;&gt;/</td>
-										<td name="" type="per">&lt;!&ndash;80%&ndash;&gt;/</td>
-									</tr>
-									<tr row="">
-										<td>完成率</td>
-										<td name="">/</td>
-										<td name="" type="per">/</td>
-									</tr>
-								</tbody>
-							</table>
-							-->
 				        </div>			            
 			        </div>
 			    </div>
 			</li>
 			<li data-name="patrol_item" style="display: none;">
 				<div class="wrap">
-			        <div class="header">巡检项统计<span class="nowDate">(2016/12/22)</span></div>
+			        <div class="header">巡检项统计<span class="nowDate">(0000/00/00)</span></div>
 			        <div class="subSlider">
 			            <div class="subTab">
 							<a href="javascript:;" class="active" data-type="1">日</a>
@@ -226,7 +207,7 @@
 			</li>	
 			<li data-name="online" style="display: none;">
 				<div class="wrap">
-			        <div class="header">上线统计<span class="nowDate">(2016/12/22)</span></div>
+			        <div class="header">上线统计<span class="nowDate" type="till">(0000/00/00)</span></div>
 			        <div class="subSlider vertical-par square">
 						<div class="row vertical-chi">
 							<div class="horizon-par">
@@ -266,16 +247,16 @@
 			</li>	
 			<li data-name="wxonline" style="display: none;">
 				<div class="wrap">
-			        <div class="header">微信上线概括<span class="nowDate">(截止2016/12/22)</span></div>
+			        <div class="header">微信上线概括<span class="nowDate" type="till">(截止0000/00/00)</span></div>
 			        <div class="subSlider vertical-par square">
 						<div class="row vertical-chi">
 							<div class="horizon-par">
 								<div class="horizon-chi left">
-									<p class="lowRed" name="">111</p>
+									<p class="lowRed" name="total_Merchant">0</p>
 									<p>录入商家<span class="small">(个)</span></p>
 								</div>
 								<div class="horizon-chi">
-									<p class="lowRed" name="">1122231</p>
+									<p class="lowRed" name="total_ad">0</p>
 									<p>发布广告<span class="small">(户)</span></p>
 								</div>
 							</div>
@@ -283,11 +264,11 @@
 						<div class="row vertical-chi">
 							<div class="horizon-par">
 								<div class="horizon-chi left">
-									<p class="lowRed" name="">111</p>
+									<p class="lowRed" name="total_event">0</p>
 									<p>微信报事<span class="small">(单)</span></p>
 								</div>
 								<div class="horizon-chi">
-									<p class="lowRed" name="">111</p>
+									<p class="lowRed" name="total_pay">0</p>
 									<p>微信缴费<span class="small">(元)</span></p>
 								</div>
 							</div>
@@ -300,7 +281,7 @@
 			</li>
 			<li data-name="wxusers_analysis" style="display: none;">
 				<div class="wrap">
-			        <div class="header">微信用户分析<span class="nowDate">(2016/12/22-2016/12/25)</span></div>
+			        <div class="header">微信用户分析<span class="nowDate">(0000/00/00-0000/00/00)</span></div>
 			        <div class="subSlider">
 			            <div class="subTab">
 							<a href="javascript:;" class="active" data-type="1">日</a>
@@ -319,33 +300,33 @@
 				                <tbody>
 				                    <tr row="">
 				                        <td>客户人数</td>
-				                        <td name=""><!--855-->/</td>
-				                        <td name="" type="per"><!--80%-->/</td>
+				                        <td name="customerNum"><!--855-->/</td>
+				                        <td name="customerNumRate" type="per"><!--80%-->/</td>
 				                    </tr>
+									<tr row="">
+										<td>注册人数</td>
+										<td name="registerNum">/</td>
+										<td name="registerNumRate" type="per">/</td>
+									</tr>
 				                    <tr row="">
 				                        <td>关注人数</td>
-				                        <td name="">/</td>
-				                        <td name="" type="per">/</td>
+				                        <td name="attentionNum">/</td>
+				                        <td name="attentionNumRate" type="per">/</td>
 				                    </tr>
 				                    <tr row="">
-				                        <td>内部报事</td>
-				                        <td name="">/</td>
-				                        <td name="" type="per">/</td>
-				                    </tr>
-				                    <tr row="" class="borBotRed">
-				                        <td>内部工单</td>
-				                        <td name="">/</td>
-				                        <td name="" type="per">/</td>
+				                        <td>认证人数</td>
+				                        <td name="identifyNum">/</td>
+				                        <td name="identifyNumRate" type="per">/</td>
 				                    </tr>
 									<tr row="">
 										<td>房产户数</td>
-										<td name="">/</td>
-										<td name="" type="per">/</td>
+										<td name="propertyNum">/</td>
+										<td name="propertyNumRate" type="per">/</td>
 									</tr>
 									<tr row="">
 										<td>认证房产户数</td>
-										<td name="">/</td>
-										<td name="" type="per">/</td>
+										<td name="identifyPropertyNum">/</td>
+										<td name="identifyPropertyNumRate" type="per">/</td>
 									</tr>
 				                </tbody>
 				            </table>
@@ -355,7 +336,7 @@
 			</li>
 			<li data-name="wx_operation" style="display: none;">
 				<div class="wrap">
-			        <div class="header">微信运营情况<span class="nowDate">(2016/12/22)</span></div>
+			        <div class="header">微信运营情况<span class="nowDate">(0000/00/00)</span></div>
 			        <div class="subSlider">
 			            <div class="subTab">
 							<a href="javascript:;" class="active" data-type="1">日</a>
@@ -372,30 +353,30 @@
 									</tr>
 				                </thead>
 				                <tbody>
-				                    <tr row="kehubaoshi">
+				                    <tr row="">
 				                        <td>客户报事</td>
-				                        <td name=""><!--855-->/</td>
-				                        <td name="" type="per"><!--85%-->/</td>
+				                        <td name="cusReport"><!--855-->/</td>
+				                        <td name="cusReportRate" type="per"><!--85%-->/</td>
 				                    </tr>
 				                    <tr row="">
 				                        <td>业务办理</td>
-				                        <td name="">/</td>
-				                        <td name="" type="per">/</td>
+				                        <td name="bizHandle">/</td>
+				                        <td name="bizHandleRate" type="per">/</td>
 				                    </tr>
 				                    <tr row="">
 				                        <td>访客授权</td>
-				                        <td name="">/</td>
-				                        <td name="" type="per">/</td>
+				                        <td name="visitorAccess">/</td>
+				                        <td name="visitorAccessRate" type="per">/</td>
 				                    </tr>
 				                    <tr row="">
 				                        <td>开门次数</td>
-				                        <td name="">/</td>
-				                        <td name="" type="per">/</td>
+				                        <td name="openDoor">/</td>
+				                        <td name="openDoorRate" type="per">/</td>
 				                    </tr>
 									<tr row="">
 										<td>缴纳欠费</td>
-										<td name="">/</td>
-										<td name="" type="per">/</td>
+										<td name="bill">/</td>
+										<td name="billRate" type="per">/</td>
 									</tr>
 				                </tbody>
 				            </table>

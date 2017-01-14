@@ -231,15 +231,39 @@
         },
 
         tableManager: function () {
+            let date = new Date(),t = (new Date().getTime()) - 24*3600*1000;
             let $subContent = $(".subContent",O.$currentPage),
                 dateType = $('.subTab > a.active',O.$currentPage).data('type') || 1,
-                timer = (new Date()).pattern("yyyy-MM-dd");
-            let $table = $("table",$subContent);
+                timer = (new Date(t)).pattern("yyyy-MM-dd");
+            let $table = $("table",$subContent),
+                $nowDate = $(".header .nowDate",O.$currentPage);
             let $i = $("thead .rate i",$table);
 
             if ($i.length > 0){
                 $i.text((dateType==1&&"(昨日值-前日值 )/前日值") || (dateType==2&&"(本周累计昨日值-上周同期累计值 )/上周同期累计值") || (dateType==3&&"(本月累计昨日值-上月同期累计值 )/上月同期累计值"));
             }
+
+            if (dateType != undefined){
+                let week = date.getDay();
+                week = week==1?'周一':('周一 至 周'+ O.weekMap(week));
+
+                let month = date.getMonth(),
+                    fullYear = date.getFullYear();
+                // month = month==0?'一月':('一月 至 '+ O.monthMap(month));
+                month = month==0?(fullYear+'/01'):(fullYear+'/01' + ' 至 '+ fullYear + '/' + O.monthMap2(month));
+                let str = (dateType==1 && (date.pattern("yyyy/MM/dd"))) || (dateType==2 && week) || (dateType==3 && month);
+                $nowDate.text('('+ str +')');
+            }else{
+                let str = '截止'+date.pattern("yyyy/MM/dd");
+                $nowDate.text('('+ str +')');
+                /*
+                let nowDateType = $nowDate.attr("type");
+                if (nowDateType != undefined){
+                    $nowDate.text((nowDateType=='till'&&('截止'+(new Date()).pattern("yyyy/MM/dd"))));
+                }else{}
+                */
+            }
+
 
             let jsonData = JSON.stringify({
                 tranCode : O.tranCode[O.currentIndex],
@@ -248,22 +272,27 @@
                     date: timer,
                     orgId: O.orgId,
                     grade: O.grade,
-                    type : dateType
+                    type : dateType,
+                    datetype: 1, // 数据展示形态 1、汇总，2 明细
+                    numType: ''
                 }
             });
 
             $.ajax({
-                url : O.postUrl,
-                type:'POST',
-                dataType : 'json',
-                data:jsonData,
-                async:true,
-                complete:function (result) {
+                url: O.postUrl,
+                type: 'POST',
+                dataType: 'json',
+                data: jsonData,
+                async: true,
+                complete: function (result) {
                     console.info(result.responseJSON);
-                    if (result.responseJSON.msgCode == 0){
+                    let msgCode = result.responseJSON.msgCode;
+                    if (msgCode != undefined && msgCode == 0){
                         let  data = result.responseJSON.bizContent;
                         for (let key in data){
-                            data[key] = parseFloat(data[key]);
+                            if (!Array.isArray(data[key]) && typeof data[key] !== 'object'){
+                                data[key] = parseFloat(data[key]);
+                            }
                         }
 
                         if ($table.length > 0){
@@ -279,7 +308,6 @@
                             }else{
                                 O.flowManager("null",data);
                             }
-
                         }else{
                             let $square = $(".square",O.$currentPage);
                             O.writeHtml($square,data);
@@ -309,19 +337,20 @@
 
                 if(rowType == undefined || rowType == "" || rowType== "null"){
                     if (chartType == 'area'){
-                        category = [1350982413186,1350982413187,1350982413188];
-                        series = [10, 12, 21];
+                        category = [];
+                        series = [];
                     }else if (chartType=='column'){
                         category = ['现金','POS','银行托收','转账','支票','微信','支付宝','其他'];
                         series = [data.cash,data.pos,data.delegate,data.exchange,data.check,(data.wechatOnline+data.wechatOffline),(data.alipayOnline+data.alipayOffline),data.other];
                     }else if (chartType=='solidgauge'){
-                        series = 50;
+                        series = data.inspectAbnormal;
                     }
-                    options = O.flowOption(category,series,chartType,dateType);
 
+                    options = O.flowOption(category,series,chartType,dateType);
                     $chart.highcharts(Highcharts.merge(options,{}));
                 }else{
-                    let timer = (new Date()).pattern("yyyy-MM-dd");
+                    let t = (new Date().getTime()) - 24*3600*1000;
+                    let timer = (new Date(t)).pattern("yyyy-MM-dd");
                     let subData = JSON.stringify({
                         tranCode : O.tranCode[O.currentIndex],
                         isEncryption : 0,
@@ -329,7 +358,9 @@
                             date: timer,
                             orgId: O.orgId,
                             grade: O.grade,
-                            type : dateType
+                            type: dateType,
+                            datetype: 2,
+                            numType: rowType  //1 客户报事 ，2- 客户工单，3-内部报事，4-内部工单
                         }
                     });
 
@@ -350,18 +381,32 @@
                         data: subData,
                         async:true,
                         success: function (result) {
-                            //假数据测试
-                            if (chartType == 'area'){
-                                category = [0,1,2,3,4,5,6];
-                                series = [10, 12, 21, 54, 260, 830, 710];
-                            }else if (chartType=='column'){
-                                category = ['现金','POS','银行托收','转账','支票','微信','支付宝','其他'];
-                                series = [20,23,15,35,38,89,23,56];
-                            }else if (chartType=='solidgauge'){
-                                series = 25;
+                            let msgCode = result.msgCode,respone;
+                            if (msgCode != undefined && msgCode == 0){
+                                respone = result.bizContent;
+                                //假数据测试
+                                if (chartType == 'area'){
+                                    category = [0,1,2,3,4,5,6];
+                                    series = [10, 12, 21, 54, 260, 830, 710];
+                                }else if (chartType=='column'){
+                                    category = ['现金','POS','银行托收','转账','支票','微信','支付宝','其他'];
+                                    series = [20,23,15,35,38,89,23,56];
+                                }else if (chartType=='solidgauge'){
+                                    series = respone.inspectAbnormal;
+                                }
+                            }else{
+                                if (chartType == 'area'){
+                                    category = [0,1,2,3,4,5,6,7];
+                                    series = [];
+                                }else if (chartType=='column'){
+                                    category = ['现金','POS','银行托收','转账','支票','微信','支付宝','其他'];
+                                    series = [];
+                                }else if (chartType=='solidgauge'){
+                                    series = 0;
+                                }
                             }
-                            options = O.flowOption(category,series,chartType,dateType);
 
+                            options = O.flowOption(category,series,chartType,dateType);
                             $chart.highcharts(Highcharts.merge(options,{}));
                         },
                         error: function (xhr) {
@@ -612,13 +657,35 @@
 
                     break;
                 case "wxonline":
-
+                    //不用处理数据
                     break;
                 case "wxusers_analysis":
+                    data.customerNum = data.currentPeriod.customerNum;
+                    data.registerNum = data.currentPeriod.registerNum;
+                    data.attentionNum = data.currentPeriod.attentionNum;
+                    data.identifyNum = data.currentPeriod.identifyNum;
+                    data.propertyNum = data.currentPeriod.propertyNum;
+                    data.identifyPropertyNum = data.currentPeriod.identifyPropertyNum;
 
+                    data.customerNumRate = O.upRate(data.currentPeriod.customerNum,data.lastPeriod.customerNum);
+                    data.registerNumRate = O.upRate(data.currentPeriod.registerNum,data.lastPeriod.registerNum);
+                    data.attentionNumRate = O.upRate(data.currentPeriod.attentionNum,data.lastPeriod.attentionNum);
+                    data.identifyNumRate = O.upRate(data.currentPeriod.identifyNum,data.lastPeriod.identifyNum);
+                    data.propertyNumRate = O.upRate(data.currentPeriod.propertyNum,data.lastPeriod.propertyNum);
+                    data.identifyPropertyNumRate = O.upRate(data.currentPeriod.identifyPropertyNum,data.lastPeriod.identifyPropertyNum);
                     break;
                 case "wx_operation":
+                    data.cusReport = data.currentData.cusReport;
+                    data.bizHandle = data.currentData.bizHandle;
+                    data.visitorAccess = data.currentData.visitorAccess;
+                    data.openDoor = data.currentData.openDoor;
+                    data.bill = data.currentData.bill;
 
+                    data.cusReportRate = O.upRate(data.currentData.cusReport,data.lastData.cusReport);
+                    data.bizHandleRate = O.upRate(data.currentData.bizHandle,data.lastData.bizHandle);
+                    data.visitorAccessRate = O.upRate(data.currentData.visitorAccess,data.lastData.visitorAccess);
+                    data.openDoorRate = O.upRate(data.currentData.openDoor,data.lastData.openDoor);
+                    data.billRate = O.upRate(data.currentData.bill,data.lastData.bill);
                     break;
                 default:
                     break;
@@ -654,7 +721,7 @@
         },
 
         /**
-         * 当期计算
+         * 当期平均值计算
          * 公式：完成数/总数
          * return float
          * **/
@@ -679,6 +746,27 @@
                 return length;
             }
             return "00:00:00";
+        },
+
+        /**
+         * js周描述 return string
+         * **/
+        weekMap: function (week) {
+            let desc = {"1":"一","2":"二","3":"三","4":"四","5":"五","6":"六","0":"日"};
+            return desc[week];
+        },
+
+        /**
+         * js月描述 return string
+         * **/
+        monthMap: function (month) {
+            let desc = {"0":"一","1":"二","2":"三","3":"四","4":"五","5":"六","6":"七","7":"八","8":"九","9":"十","10":"十一","11":"十二"};
+            return desc[month];
+        },
+
+        monthMap2: function (month) {
+            let desc = {"0":"01","1":"02","2":"03","3":"04","4":"05","5":"06","6":"07","7":"08","8":"09","9":"10","10":"11","11":"12"};
+            return desc[month];
         },
         
         writeHtmlTest: function ($table) {
@@ -744,7 +832,7 @@
 
             init(xxxx);
         }else if (TESTALL){
-            O.tranCode = [3020,2413,3020,3020,0,0,0,0];
+            O.tranCode = [2026,2413,3020,3020,0,3023,3022,3024];
             O.grade = 4;
             O.orgId = 91492;
             let $loading = $("#loading");
@@ -780,7 +868,7 @@
             $mainTabWrap = $(".mainTabWrap");
         let $sliderContentUl = $(".sliderContentUl > li",$slider),
             $pageNav = $("#pageNav > li",$mainTabWrap);
-        let tempTranCode = [3020,2413,3020,3020,4,5,6,7];
+        let tempTranCode = [2026,2413,3020,3020,0,3023,3022,3024];
 
         O.grade = json.grade;
         O.orgId = json.orgId;
