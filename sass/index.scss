@@ -201,19 +201,25 @@ $lowRed:#FE8A77;
 
                 i{
                     position: absolute;
-                    display: inline-block;
-                    width: 100px;
-                    height: 40px;
-                    line-height: 40px;
-                    background-color: $deepRed; //#FFE0DA
-                    border: $border;
+                    //display: inline-block;
+                    width: 138px;
+                    line-height: 2.0rem;
+                    background-color: $deepRed;
+                    //border: 1px solid #E8E8E8;
                     color: #fff;
                     border-radius: 4px;
-                    left: 20%;
-                    transform: translate(-50%,-50%);
-                    bottom: -8vh;
+                    left: -50%;
+                    /* transform: translate(-50%, -50%); */
+                    top: 7vh;
                     opacity: 0.88;
-                    font-size: 0.4rem;
+                    font-size: 1.2rem;
+                    text-align: left;
+                    word-break: break-all;
+                    word-wrap: break-word;
+                    -webkit-box-shadow:0 2px 8px rgba(0, 0, 0,.6);
+                    -moz-box-shadow:0 2px 8px rgba(0, 0, 0,.6);
+                    box-shadow:0 2px 8px rgba(0, 0, 0, .6); //0, 204, 204, .5
+                    display: none;
 
                     &:before,&:after{
                         display: block;

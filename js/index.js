@@ -129,8 +129,8 @@
     /**
      * #defined TEST bool {true:"devDependencies",false:"dependencies"}
      * **/
-    const TEST = true;
-    const TESTALL = false;
+    const TEST = false;
+    const TESTALL = true;
 
     let O = {
         root: "http://poly.hengtech.com.cn/pmsSrv/api/api!gateway.action",
@@ -190,7 +190,7 @@
                 $this.siblings().removeClass('active');
 
                 O.manager(); //切换二级tab重新加载table、flow
-            }).on('click','table.clickTrue tr',function (e) {
+            }).on('click','table.clickTrue tbody tr',function (e) {
                 let $this = $(e.target);
                 if ($this.is('td')){
                     let $tr = $this.parent('tr');
@@ -204,6 +204,29 @@
                     console.log(rowType);
                     O.flowManager(rowType,{}); //重新画图
                 }
+            }).on('click','table thead .rate',function (e) {
+                let $this = $(e.target),
+                    _this;
+                if ($this.is(".rate")){
+                    _this = $this;
+                }
+                if ($this.is(".q")){
+                    _this = $this.parent(".rate");
+                }
+                let $q = $(".q",_this);
+
+                if ($q.length > 0){
+                    let $i = $("i",_this);
+                    if ($i.is(":visible")){
+                        return;
+                    }
+
+                    $i.fadeIn();
+                    clearTimeout(timer);
+                    var timer = setTimeout(function () {
+                        $i.fadeOut();
+                    },3000);
+                }
             });
         },
 
@@ -212,7 +235,11 @@
                 dateType = $('.subTab > a.active',O.$currentPage).data('type') || 1,
                 timer = (new Date()).pattern("yyyy-MM-dd");
             let $table = $("table",$subContent);
-            console.log(dateType);
+            let $i = $("thead .rate i",$table);
+
+            if ($i.length > 0){
+                $i.text((dateType==1&&"(昨日值-前日值 )/前日值") || (dateType==2&&"(本周累计昨日值-上周同期累计值 )/上周同期累计值") || (dateType==3&&"(本月累计昨日值-上月同期累计值 )/上月同期累计值"));
+            }
 
             let jsonData = JSON.stringify({
                 tranCode : O.tranCode[O.currentIndex],
@@ -263,9 +290,6 @@
                     O.flowManager("null",{});
                 }
             });
-
-
-
         },
 
         /**
@@ -293,7 +317,7 @@
                     }else if (chartType=='solidgauge'){
                         series = 50;
                     }
-                    options = O.flowOption(category,series,chartType);
+                    options = O.flowOption(category,series,chartType,dateType);
 
                     $chart.highcharts(Highcharts.merge(options,{}));
                 }else{
@@ -328,7 +352,7 @@
                         success: function (result) {
                             //假数据测试
                             if (chartType == 'area'){
-                                category = [1350982413186,1350982413187,1350982413188,1350982413189,1350982413180,1350982413196,1350982413197];
+                                category = [0,1,2,3,4,5,6];
                                 series = [10, 12, 21, 54, 260, 830, 710];
                             }else if (chartType=='column'){
                                 category = ['现金','POS','银行托收','转账','支票','微信','支付宝','其他'];
@@ -336,7 +360,7 @@
                             }else if (chartType=='solidgauge'){
                                 series = 25;
                             }
-                            options = O.flowOption(category,series,chartType);
+                            options = O.flowOption(category,series,chartType,dateType);
 
                             $chart.highcharts(Highcharts.merge(options,{}));
                         },
@@ -352,7 +376,7 @@
         /**
          * 图表动态选项
          * **/
-        flowOption: function (category,series,chartType) {
+        flowOption: function (category,series,chartType,dateType) {
             let options = {};
             if (chartType == 'area'){
                 options = {
@@ -373,7 +397,22 @@
                         categories: category,
                         labels: {
                             formatter:function(){
-                                return Highcharts.dateFormat('%H:%M',this.value);
+                                let val;
+                                switch (dateType){
+                                    case 1:
+                                        val = this.value;
+                                        break;
+                                    case 2:
+                                        val = '周' + this.value;
+                                        break;
+                                    case 3:
+                                        val = this.value + '月';
+                                        break;
+                                    default:
+                                        val = this.value;
+                                        break;
+                                }
+                                return val; // return Highcharts.dateFormat('%H:%M',this.value);
                             }
                         }
                     },
@@ -387,9 +426,23 @@
                     tooltip:{
                         backgroundColor: '#ff6347',
                         formatter:function(){
-                            return  '<b>'+this.series.name+'</b><br/>'+
-                                '时间点:'+Highcharts.dateFormat('%H:%M',this.x)+'<br/>'+
-                                '报事量:'+this.y;
+                            let xVal;
+                            switch (dateType){
+                                case 1:
+                                    xVal = this.x+':00-'+this.x+':59';
+                                    break;
+                                case 2:
+                                    xVal = '周' + this.x;
+                                    break;
+                                case 3:
+                                    xVal = this.x + '月';
+                                    break;
+                                default:
+                                    xVal = this.x;
+                                    break;
+                            }
+
+                            return '时间点:'+ xVal +'<br/>'+'报事量:'+this.y; //return '<b>'+this.series.name+'</b><br/>'+'时间点:'+Highcharts.dateFormat('%H:%M',this.x)+'<br/>'+'报事量:'+this.y;
                         }
                     }
                 };
@@ -584,8 +637,7 @@
                     }
                     $td.html((data[k]*100) + '%');
                 }else if (type == "timeCount"){
-                    //时间转换
-                    $td.html(data[k] + '时间转换');
+                    $td.html(O.longTime(data[k])); //时间转换
                 }else{
                     $td.html(data[k]);
                 }
@@ -608,6 +660,25 @@
          * **/
         rangeRate : function (a,b) {
             return (b<=0 || b==null || b==undefined || b ==NaN)?(a>0?100:0):(a/b);
+        },
+
+        /**
+         * 时间长度转换
+         * @a int 单位秒
+         * return hh:mm:ss
+         * **/
+        longTime: function (a) {
+            let hh = parseInt(a/3600);
+            if(hh < 10) hh = "0" + hh;
+            let mm = parseInt((a - hh*3600)/60);
+            if(mm < 10) mm = "0" + mm;
+            let ss = parseInt((a - hh*3600)%60);
+            if(ss < 10) ss = "0" + ss;
+            let length = hh + ":" + mm + ":" + ss;
+            if(a > 0){
+                return length;
+            }
+            return "00:00:00";
         },
         
         writeHtmlTest: function ($table) {
@@ -668,7 +739,9 @@
             };
             testJson = JSON.stringify(testJson);
 
-            let xxxx = '{"grade":4,"orgId":100960,"authCodeList":[{"code":"hygj_report_auth_code"},{"code":"hygj_report_postit"},{"code":"hygj_report_charge"},{"code":"hygj_report_patrol_task"},{"code":"hygj_report_patrol_item"},{"code":"hygj_report_online"},{"code":"hygj_report_wxonline"},{"code":"hygj_report_wxusers_analysis"},{"code":"hygj_report_wx_operation"}]}'
+            let xxxx = '{"grade":4,"orgId":100960,"authCodeList":[{"code":"hygj_report_auth_code"},{"code":"hygj_report_postit"},{"code":"hygj_report_charge"},{"code":"hygj_report_patrol_task"},{"code":"hygj_report_patrol_item"},{"code":"hygj_report_online"},{"code":"hygj_report_wxonline"},{"code":"hygj_report_wxusers_analysis"},{"code":"hygj_report_wx_operation"}]}';
+            xxxx = '{"grade":4,"orgId":100960,"authCodeList":[{"code":"hygj_report_auth_code"},{"code":"hygj_report_patrol_task"},{"code":"hygj_report_patrol_item"},{"code":"hygj_report_online"},{"code":"hygj_report_wxonline"},{"code":"hygj_report_wxusers_analysis"},{"code":"hygj_report_wx_operation"}]}'
+
             init(xxxx);
         }else if (TESTALL){
             O.tranCode = [3020,2413,3020,3020,0,0,0,0];
