@@ -4,7 +4,7 @@
      * title,legend : 1.4rem
      * xAxis,yAxis : 1.2rem
      * loading : 1.6rem
-     * color #ff6347 : 2.4rem (color warning)
+     * color warning(#ff6347) : 2.4rem
      * **/
     Highcharts.setOptions({
         global:{
@@ -127,12 +127,15 @@
     });
 
     /**
-     * #defined TEST bool {true:"devDependencies",false:"dependencies"}
+     * #defined TEST,TESTALL bool {true:"devDependencies",false:"dependencies"}
+     * 1 - 测试部分模块 TEST:true,TESTALL:true OR false
+     * 2 - 测试全部模块 TEST:false,TESTALL:true
+     * 3 - dependencies TEST:false,TESTALL:false
      * **/
     const TEST = false;
-    const TESTALL = true;
+    const TESTALL = false;
 
-    let O = {
+    var O = {
         root: "http://poly.hengtech.com.cn/pmsSrv/api/api!gateway.action",
         postUrl: '/api/api!gateway.action',
 
@@ -201,7 +204,6 @@
                     $tr.siblings().removeClass('active');
 
                     let rowType = $tr.attr("row");
-                    console.log(rowType);
                     O.flowManager(rowType,{}); //重新画图
                 }
             }).on('click','table thead .rate',function (e) {
@@ -269,37 +271,53 @@
                 tranCode : O.tranCode[O.currentIndex],
                 isEncryption : 0,
                 bizContent : {
-                    date: timer,
+                    date: timer, //'2016-12-05'
                     orgId: O.orgId,
                     grade: O.grade,
                     type : dateType,
-                    datetype: 1, // 数据展示形态 1、汇总，2 明细
+                    datetype: 1, //数据展示形态 1 汇总，2 明细
                     numType: ''
                 }
             });
+
+            let layerIndex = layer.load(2,{shade: [0.1,'#fff']});
+            if(O.currentIndex == 0){
+                $(".layui-layer-loading").css({
+                    "top": "50%",
+                    "left": "45%",
+                    "transform": "translate(-50%,-50%)",
+                    "position": "absolute"
+                });
+            }
 
             $.ajax({
                 url: O.postUrl,
                 type: 'POST',
                 dataType: 'json',
                 data: jsonData,
+                // timeout : 15000,
                 async: true,
-                complete: function (result) {
-                    console.info(result.responseJSON);
-                    let msgCode = result.responseJSON.msgCode;
-                    if (msgCode != undefined && msgCode == 0){
+                complete: function (result,status) {
+                    layer.close(layerIndex);
+
+                    if(status=='timeout'){
+                        layer.msg('请求超时,请稍后重试!',{icon: 2,shift:3});
+                        return;
+                    }
+
+                    if (result.responseJSON && result.responseJSON.msgCode != undefined && result.responseJSON.msgCode == 0){
                         let  data = result.responseJSON.bizContent;
                         for (let key in data){
                             if (!Array.isArray(data[key]) && typeof data[key] !== 'object'){
-                                data[key] = parseFloat(data[key]);
+                                data[key] = parseFloat(data[key]);  //数据处理：string to float
                             }
                         }
 
+                        //表格分类处理
                         if ($table.length > 0){
                             let $tbody = $("tbody",$table[0]);
                             let $activeTr = $("tr.active",$tbody);
                             let rowType = $activeTr.attr("row");
-                            console.log(rowType);
 
                             O.writeHtml($table,data);
 
@@ -315,6 +333,7 @@
                     }
                 },
                 error: function (xhr) {
+                    layer.close(layerIndex);
                     O.flowManager("null",{});
                 }
             });
@@ -322,11 +341,12 @@
 
         /**
          * 图表封装
+         * @param rowType 表格中有详细内容的项目,对应numType(即为numType),无则为undefined或null或""
          * **/
         flowManager: function (rowType,data) {
             let $flow = $(".flow",O.$currentPage);
             if ($flow.length > 0){
-                let dateType = $('.subTab > a.active',O.$currentPage).data('type') || 1; //日期类型：1:day,2:week,3:mouth
+                let dateType = $('.subTab > a.active',O.$currentPage).data('type') || 1;
 
                 let chartType = $flow.data("type"),
                     id = $flow.attr("id"),
@@ -355,12 +375,12 @@
                         tranCode : O.tranCode[O.currentIndex],
                         isEncryption : 0,
                         bizContent : {
-                            date: timer,
+                            date: timer, //'2016-12-05'
                             orgId: O.orgId,
                             grade: O.grade,
                             type: dateType,
                             datetype: 2,
-                            numType: rowType  //1 客户报事 ，2- 客户工单，3-内部报事，4-内部工单
+                            numType: rowType  //1:客户报事,2:客户工单,3:内部报事,4:内部工单
                         }
                     });
 
@@ -375,28 +395,36 @@
                     charts.showLoading();
 
                     $.ajax({
-                        url : O.postUrl,
-                        type:'POST',
-                        dataType : 'json',
+                        url: O.postUrl,
+                        type: 'POST',
+                        dataType: 'json',
                         data: subData,
-                        async:true,
-                        success: function (result) {
-                            let msgCode = result.msgCode,respone;
-                            if (msgCode != undefined && msgCode == 0){
-                                respone = result.bizContent;
-                                //假数据测试
+                        complete: function (re,status) {
+                            let respone;
+
+                            if (re.responseJSON && re.responseJSON.msgCode!=undefined && re.responseJSON.msgCode==0){
+                                respone = re.responseJSON.bizContent;
+
                                 if (chartType == 'area'){
-                                    category = [0,1,2,3,4,5,6];
-                                    series = [10, 12, 21, 54, 260, 830, 710];
-                                }else if (chartType=='column'){
-                                    category = ['现金','POS','银行托收','转账','支票','微信','支付宝','其他'];
-                                    series = [20,23,15,35,38,89,23,56];
+                                    respone = respone.data;
+                                    for (let j in respone){
+                                        respone[j].num = parseFloat(respone[j].num);
+                                        category.push(j);
+                                        series.push(respone[j].num);
+                                    }
+                                }else if(chartType=='column'){
+                                    for (let j in respone){
+                                        respone[j] = parseFloat(respone[j]);
+                                        category = ['现金','POS','银行托收','转账','支票','微信','支付宝','其他'];
+                                        series.push(respone[j]);
+                                    }
                                 }else if (chartType=='solidgauge'){
                                     series = respone.inspectAbnormal;
                                 }
                             }else{
+                                //无数据
                                 if (chartType == 'area'){
-                                    category = [0,1,2,3,4,5,6,7];
+                                    category = [];
                                     series = [];
                                 }else if (chartType=='column'){
                                     category = ['现金','POS','银行托收','转账','支票','微信','支付宝','其他'];
@@ -420,6 +448,10 @@
 
         /**
          * 图表动态选项
+         * @param Array category x轴
+         * @param Array series 数据列
+         * @param String chartType 图表类型
+         * @param String dateType 日期类型{1:日,2:周,3:月}
          * **/
         flowOption: function (category,series,chartType,dateType) {
             let options = {};
@@ -443,7 +475,7 @@
                         labels: {
                             formatter:function(){
                                 let val;
-                                switch (dateType){
+                                switch (parseInt(dateType)){
                                     case 1:
                                         val = this.value;
                                         break;
@@ -472,7 +504,7 @@
                         backgroundColor: '#ff6347',
                         formatter:function(){
                             let xVal;
-                            switch (dateType){
+                            switch (parseInt(dateType)){
                                 case 1:
                                     xVal = this.x+':00-'+this.x+':59';
                                     break;
@@ -503,7 +535,7 @@
                     },
                     tooltip: {
                         borderColor: Highcharts.getOptions().colors[0],
-                        pointFormat: '<b>{point.y:.1f}</b>'
+                        pointFormat: '<b>{point.y:.2f}</b>'
                     },
                     series: [{
                         name: 'Population',
@@ -605,9 +637,10 @@
 
         /**
          * slider index function manager
-         * @param index 滑动的当前tab的索引
-         * tableManager 函数管理table内容
-         * drawFlow 函数管理图表内容
+         * 操作入口
+         * @param Int index 滑动的当前tab的索引
+         * function tableManager() 管理table内容
+         * function drawFlow() 管理图表内容
          * **/
         manager: function () {
             O.$currentPage = $(".sliderContentUl > li").eq(O.currentIndex);
@@ -621,11 +654,60 @@
             if (data == undefined || data == null || data == {}){
                 return;
             }
-            let tableName = $table.data("name") || "null";
-            console.log("tableName:"+tableName);
+            let tableName = $table.data("name") || "null"; //charge
             switch (tableName){
                 case "postit":
+                    let current = data.curreDate,
+                        last = data.lastDate;
+                    let len = current.length;
+                    for (let i = 0;i<len;i++){
+                        let currCom = current[i].Comple,
+                            currAll = current[i].All,
+                            lastCom = last[i].Comple,
+                            lastAll = last[i].All;
 
+                        switch (parseInt(current[i].numType)){
+                            case 1:
+                                data.complete1 = currCom;
+                                data.complete1Count = O.rangeRate(data.complete1,currAll);
+                                break;
+                            case 2:
+                                data.complete2 = currCom;
+                                data.complete2Count = O.rangeRate(data.complete2,currAll);
+                                break;
+                            case 3:
+                                data.complete3 = currCom;
+                                data.complete3Count = O.rangeRate(data.complete3,currAll);
+                                break;
+                            case 4:
+                                data.complete4 = currCom;
+                                data.complete4Count = O.rangeRate(data.complete4,currAll);
+                                break;
+                            default:
+                                break;
+                        }
+                        switch (parseInt(last[i].numType)){
+                            case 1:
+                                data.lastComplete1 = lastCom;
+                                // data.complete1Count = data.complete1 / currAll;
+                                break;
+                            case 2:
+                                data.lastComplete2 = lastCom;
+                                break;
+                            case 3:
+                                data.lastComplete3 = lastCom;
+                                break;
+                            case 4:
+                                data.lastComplete4 = lastCom;
+                                break;
+                            default:
+                                break;
+                        }
+                    }
+                    data.complete1Rate = O.upRate(data.complete1,data.lastComplete1);
+                    data.complete2Rate = O.upRate(data.complete2,data.lastComplete2);
+                    data.complete3Rate = O.upRate(data.complete3,data.lastComplete3);
+                    data.complete4Rate = O.upRate(data.complete4,data.lastComplete4);
                     break;
                 case "charge":
                     data.thisOldRate = O.upRate(data.thisOld,data.passOld);
@@ -654,7 +736,7 @@
                     data.inspectAbnormalRate = O.upRate(data.inspectAbnormal,data.pre_inspectAbnormal);
                     break;
                 case "online":
-
+                    data = data.bizContent;
                     break;
                 case "wxonline":
                     //不用处理数据
@@ -691,10 +773,13 @@
                     break;
             }
 
-            // let $tr = $('[row="'+i+'"]',$table);
-            let $tr = $('tbody tr',$table) || $('.lowRed',$table);
+            let $tr = $('tbody tr',$table);  // let $tr = $('[row="'+i+'"]',$table);
+            if($tr.length <= 0){
+                $tr = $table;  //.square
+            }
+
             for (let k in data){
-                let  $td = $('[name="'+k+'"]',$tr);
+                let  $td = $("[name='"+k+"']",$tr);
                 let type = $td.attr("type");
                 if (type == "per"){
                     if (data[k] < 0){
@@ -702,9 +787,11 @@
                     }else {
                         $td.removeClass("lowRed");
                     }
-                    $td.html((data[k]*100) + '%');
+                    $td.html((data[k]*100).toFixed(2) + '%');
                 }else if (type == "timeCount"){
                     $td.html(O.longTime(data[k])); //时间转换
+                }else if(type == "area"){
+                    $td.html(data[k]);
                 }else{
                     $td.html(data[k]);
                 }
@@ -713,25 +800,53 @@
 
         /**
          * 增长率计算
+         * @param Float a 本期
+         * @param Float b 上期
          * 公式：(本期-上期)/上期
          * return float
          * **/
         upRate: function (a,b) {
-            return (b<=0 || b==null || b==undefined || b ==NaN)?(a>0?100:0):((a-b)/b);
+            let rate;
+            a = parseFloat(a);
+            b = parseFloat(b);
+            if (a <= 0 || a==null || a==undefined || isNaN(a)){
+                rate = 0;
+            }else{
+                if (b<=0 || b==null || b==undefined || isNaN(b)){
+                    rate = 1; //100%
+                }else{
+                    rate = (a-b)/b;
+                }
+            }
+            return rate;
         },
 
         /**
          * 当期平均值计算
+         * @param Float a 完成数
+         * @param Float b 总数
          * 公式：完成数/总数
          * return float
          * **/
         rangeRate : function (a,b) {
-            return (b<=0 || b==null || b==undefined || b ==NaN)?(a>0?100:0):(a/b);
+            let rate;
+            a = parseFloat(a);
+            b = parseFloat(b);
+            if (a<=0 || a==null || a==undefined || isNaN(a)){
+                rate = 0;
+            }else{
+                if (b<=0 || b==null || b==undefined || isNaN(b)){
+                    rate = 1;
+                }else{
+                    rate = a/b;
+                }
+            }
+            return rate;
         },
 
         /**
          * 时间长度转换
-         * @a int 单位秒
+         * @param Int a 单位秒
          * return hh:mm:ss
          * **/
         longTime: function (a) {
@@ -767,72 +882,19 @@
         monthMap2: function (month) {
             let desc = {"0":"01","1":"02","2":"03","3":"04","4":"05","5":"06","6":"07","7":"08","8":"09","9":"10","10":"11","11":"12"};
             return desc[month];
-        },
-        
-        writeHtmlTest: function ($table) {
-            let testData = {
-                "testRow1":{
-                    "test1": 123,
-                    "test2": 80,
-                    "test3": -10
-                },
-                "testRow2":{
-                    "test1": 123,
-                    "test2": -7.0,
-                    "test3": 10.00
-                }
-            };
-            $table.each(function () {
-                let _this = $(this);
-                for (let i in testData){
-                    let $tr = $('[row="'+i+'"]',_this);
-                    for (let j in testData[i]){
-                        testData[i][j] = parseFloat(testData[i][j]);
-                        let  $td = $('[name="'+j+'"]',$tr);
-                        // let type = $td.data("type");
-                        let type = $td.attr("type");
-                        if (type == "per"){
-                            if (testData[i][j] < 0){
-                                $td.addClass("lowRed");
-                            }else {
-                                $td.removeClass("lowRed");
-                            }
-                            $td.html(testData[i][j] + '%');
-                        }else{
-                            $td.html(testData[i][j]);
-                        }
-                    }
-                }
-            });
         }
     };
 
     (function initialize() {
         if (TEST){
             $("#loading .text").html("Testing,Please wait...");
-            let testJson = {
-                grade : 4,
-                orgId : 91492,
-                authCodeList:[
-                    // {code: "hygj_report"}, //****报表****
-                    {code: "hygj_report_postit"}, //报事统计
-                    {code: "hygj_report_charge"}, //缴费统计
-                    {code: "hygj_report_patrol_task"}, //巡检任务统计
-                    // {code: "hygj_report_patrol_item"}, //巡检项统计
-                    {code: "hygj_report_online"}, //上线统计
-                    // {code: "hygj_report_wxonline"}, //微信上线统计
-                    {code: "hygj_report_wxusers_analysis"}, //微信用户统计
-                    // {code: "hygj_report_wx_operation"} //微信运营统计
-                ]
-            };
-            testJson = JSON.stringify(testJson);
 
-            let xxxx = '{"grade":4,"orgId":100960,"authCodeList":[{"code":"hygj_report_auth_code"},{"code":"hygj_report_postit"},{"code":"hygj_report_charge"},{"code":"hygj_report_patrol_task"},{"code":"hygj_report_patrol_item"},{"code":"hygj_report_online"},{"code":"hygj_report_wxonline"},{"code":"hygj_report_wxusers_analysis"},{"code":"hygj_report_wx_operation"}]}';
-            xxxx = '{"grade":4,"orgId":100960,"authCodeList":[{"code":"hygj_report_auth_code"},{"code":"hygj_report_patrol_task"},{"code":"hygj_report_patrol_item"},{"code":"hygj_report_online"},{"code":"hygj_report_wxonline"},{"code":"hygj_report_wxusers_analysis"},{"code":"hygj_report_wx_operation"}]}'
-
-            init(xxxx);
+            let t = '{"grade":4,"orgId":100960,"authCodeList":[{"code":"hygj_report"},{"code":"hygj_report_postit"},{"code":"hygj_report_charge"},{"code":"hygj_report_patrol_task"},{"code":"hygj_report_patrol_item"},{"code":"hygj_report_online"},{"code":"hygj_report_wxonline"},{"code":"hygj_report_wxusers_analysis"},{"code":"hygj_report_wx_operation"}]}';
+            t = '{"grade":4,"orgId":100960,"authCodeList":[{"code":"hygj_report_wxonline"},{"code":"hygj_report_wxusers_analysis"},{"code":"hygj_report_wx_operation"}]}';
+            t = '{"grade":4,"orgId":91387,"authCodeList":[{"code":"hygj_report_online"},{"code":"hygj_report_wxonline"},{"code":"hygj_report_wxusers_analysis"}]}';
+            init(t);
         }else if (TESTALL){
-            O.tranCode = [2026,2413,3020,3020,0,3023,3022,3024];
+            O.tranCode = [3025,2413,3020,3020,3026,3023,3022,3024];
             O.grade = 4;
             O.orgId = 91492;
             let $loading = $("#loading");
@@ -850,7 +912,7 @@
                 grade : 1,
                 orgId : 1234,
                 authCodeList:[
-                    {code: "hygj_report_auth_code"}, //****报表****
+                    {code: "hygj_report"}, //****报表****
                     {code: "hygj_report_postit"}, //报事统计
                     {code: "hygj_report_charge"}, //缴费统计
                     {code: "hygj_report_patrol_task"}, //巡检任务统计
@@ -868,7 +930,7 @@
             $mainTabWrap = $(".mainTabWrap");
         let $sliderContentUl = $(".sliderContentUl > li",$slider),
             $pageNav = $("#pageNav > li",$mainTabWrap);
-        let tempTranCode = [2026,2413,3020,3020,0,3023,3022,3024];
+        let tempTranCode = [3025,2413,3020,3020,3026,3023,3022,3024];
 
         O.grade = json.grade;
         O.orgId = json.orgId;
@@ -935,9 +997,11 @@
         }
         */
 
+        /*
         console.info(jsonCode);
         console.info(isd);
         console.log(O.tranCode);
+        */
 
         $("#pageNav > li",$mainTabWrap).eq(0).addClass("active");
 
@@ -945,16 +1009,8 @@
         $slider.show();
         $mainTabWrap.show();
 
-        // return;
-
         O.slider();
         O.manager();
-
-        // setTimeout(function () {
-        //     O.slider();
-        //     O.manager();
-        // },800);
-
     }
 
 }

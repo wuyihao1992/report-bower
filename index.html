@@ -15,9 +15,28 @@
 </head>
 
 <body style="overflow-y: scroll;overflow-x: hidden;">
+	<!--
 	<div id="loading" class="cell">
 		<div class="card">
 			<span class="gauge-loader">Loading…</span>
+		</div>
+		<div class="text">Loading...</div>
+	</div>
+	-->
+	<!--<div id="test1"></div><br>-->
+	<!--<div id="test2"></div>-->
+
+	<div id="loading" class="loading-center">
+		<div class="loading-center-absolute">
+			<div class="object object_1"></div>
+			<div class="object object_2"></div>
+			<div class="object object_3"></div>
+			<div class="object object_4"></div>
+			<div class="object object_5"></div>
+			<div class="object object_6"></div>
+			<div class="object object_7"></div>
+			<div class="object object_8"></div>
+			<div class="object object_big"></div>
 		</div>
 		<div class="text">Loading...</div>
 	</div>
@@ -46,27 +65,27 @@
 				                <tbody>
 				                    <tr row="1" numType="1" class="active">
 				                        <td>客户报事</td>
-				                        <td name="complete1"><!--123-->/</td>
-				                        <td name="test2" type="per"><!--80%-->/</td>
-				                        <td name="test3" type="per"><!--10.00%-->/</td>
+				                        <td name="complete1">0</td>
+				                        <td name="complete1Count" type="per">0%</td>
+				                        <td name="complete1Rate" type="per">0.00%</td>
 				                    </tr>
 				                    <tr row="2" numType="2">
 				                        <td>客户工单</td>
-				                        <td name="complete2">/</td>
-				                        <td name="" type="per">/</td>
-				                        <td name="" type="per">/</td>
+				                        <td name="complete2">0</td>
+				                        <td name="complete2Count" type="per">0%</td>
+				                        <td name="complete2Rate" type="per">0.00%</td>
 				                    </tr>
 				                    <tr row="3" numType="3">
 				                        <td>内部报事</td>
-				                        <td name="complete3">/</td>
-				                        <td name="" type="per">/</td>
-				                        <td name="" type="per">/</td>
+				                        <td name="complete3">0</td>
+				                        <td name="complete3Count" type="per">0%</td>
+				                        <td name="complete3Rate" type="per">0.00%</td>
 				                    </tr>
 				                    <tr row="4" numType="4">
 				                        <td>内部工单</td>
-				                        <td name="complete4">/</td>
-				                        <td name="" type="per">/</td>
-				                        <td name="" type="per">/</td>
+				                        <td name="complete4">0</td>
+				                        <td name="complete4Count" type="per">0%</td>
+				                        <td name="complete4Rate" type="per">0.00%</td>
 				                    </tr>
 				                </tbody>
 				            </table>
@@ -96,18 +115,18 @@
 				                <tbody>
 				                    <tr row="">
 				                        <td>实收往年</td>
-				                        <td name="thisOld"><!--123-->/</td>
-				                        <td name="thisOldRate" type="per"><!--80%-->/</td>
+				                        <td name="thisOld">0</td>
+				                        <td name="thisOldRate" type="per">0.00%</td>
 				                    </tr>
 				                    <tr row="">
 				                        <td>实收本年</td>
-				                        <td name="thisNow">/</td>
-				                        <td name="thisNowRate" type="per">/</td>
+				                        <td name="thisNow">0</td>
+				                        <td name="thisNowRate" type="per">0.00%</td>
 				                    </tr>
 				                    <tr row="">
 				                        <td>预收</td>
-				                        <td name="thisPrepay">/</td>
-				                        <td name="thisPrepayRate" type="per">/</td>
+				                        <td name="thisPrepay">0</td>
+				                        <td name="thisPrepayRate" type="per">0.00%</td>
 				                    </tr>
 				                </tbody>
 				            </table>
@@ -137,25 +156,25 @@
 				                <tbody>
 				                    <tr row="">
 				                        <td>应巡检</td>
-				                        <td name="taskCount"><!--123-->/</td>
-				                        <td name="taskCountRate" type="per"><!--80%-->/</td>
+				                        <td name="taskCount">0</td>
+				                        <td name="taskCountRate" type="per">0.00%</td>
 				                    </tr>
 				                    <tr row="">
 				                        <td>实际完成</td>
-				                        <td name="taskCompleteCount">/</td>
-				                        <td name="taskCompleteCountRate" type="per">/</td>
+				                        <td name="taskCompleteCount">0</td>
+				                        <td name="taskCompleteCountRate" type="per">0.00%</td>
 				                    </tr>
 
 									<tr class="head"><td> </td><td>当期</td><td>增长率</td></tr>
 									<tr row="">
 										<td>平均耗时</td>
-										<td name="taskRangeTime" type="timeCount"><!--0:19:12-->/</td>
-										<td name="taskRangeTimeRate" type="per"><!--80%-->/</td>
+										<td name="taskRangeTime" type="timeCount">00:00:00</td>
+										<td name="taskRangeTimeRate" type="per">0.00%</td>
 									</tr>
 									<tr row="">
 										<td>完成率</td>
-										<td name="completeRate" type="per">/</td>
-										<td name="passCompleteRate" type="per">/</td>
+										<td name="completeRate" type="per">0.00%</td>
+										<td name="passCompleteRate" type="per">0.00%</td>
 									</tr>
 
 				                </tbody>
@@ -185,18 +204,18 @@
 				                <tbody>
 				                    <tr row="">
 				                        <td>应巡检项</td>
-				                        <td name="inspectCount"><!--123-->/</td>
-				                        <td name="inspectCountRate" type="per"><!--80%-->/</td>
+				                        <td name="inspectCount">0</td>
+				                        <td name="inspectCountRate" type="per">0.00%</td>
 				                    </tr>
 				                    <tr row="">
 				                        <td>实际完成</td>
-				                        <td name="inspectCompleteCount">/</td>
-				                        <td name="inspectCompleteCountRate" type="per">/</td>
+				                        <td name="inspectCompleteCount">0</td>
+				                        <td name="inspectCompleteCountRate" type="per">0.00%</td>
 				                    </tr>
 				                    <tr row="">
 				                        <td>异常项</td>
-				                        <td name="inspectAbnormal">/</td>
-				                        <td name="inspectAbnormalRate" type="per">/</td>
+				                        <td name="inspectAbnormal">0</td>
+				                        <td name="inspectAbnormalRate" type="per">0.00%</td>
 				                    </tr>
 				                </tbody>
 				            </table>
@@ -208,15 +227,15 @@
 			<li data-name="online" style="display: none;">
 				<div class="wrap">
 			        <div class="header">上线统计<span class="nowDate" type="till">(0000/00/00)</span></div>
-			        <div class="subSlider vertical-par square">
+			        <div class="subSlider vertical-par square" data-name="online">
 						<div class="row vertical-chi">
 							<div class="horizon-par">
 								<div class="horizon-chi left">
-									<p class="lowRed" name="">111</p>
+									<p class="lowRed" name="onLineProject">0</p>
 									<p>上线项目<span class="small">(个)</span></p>
 								</div>
 								<div class="horizon-chi">
-									<p class="lowRed" name="">1122231</p>
+									<p class="lowRed" name="num">0</p>
 									<p>接管户数<span class="small">(户)</span></p>
 								</div>
 							</div>
@@ -224,11 +243,11 @@
 						<div class="row vertical-chi">
 							<div class="horizon-par">
 								<div class="horizon-chi left">
-									<p class="lowRed" name="">111.00</p>
+									<p class="lowRed" name="area" type="area">0.00</p>
 									<p>接管面积<span class="small">(m<sup>2</sup>)</span></p>
 								</div>
 								<div class="horizon-chi">
-									<p class="lowRed" name="">111</p>
+									<p class="lowRed" name="totalUser">0</p>
 									<p>员工人数<span class="small">(人)</span></p>
 								</div>
 							</div>
@@ -236,7 +255,7 @@
 						<div class="row vertical-chi borBotNone">
 							<div class="horizon-par">
 								<div class="horizon-chi left">
-									<p class="lowRed" name="">111</p>
+									<p class="lowRed" name="totalLogin">0</p>
 									<p>登录次数<span class="small">(次)</span></p>
 								</div>
 								<div class="horizon-chi"></div>
@@ -248,7 +267,7 @@
 			<li data-name="wxonline" style="display: none;">
 				<div class="wrap">
 			        <div class="header">微信上线概括<span class="nowDate" type="till">(截止0000/00/00)</span></div>
-			        <div class="subSlider vertical-par square">
+			        <div class="subSlider vertical-par square" data-name="wxonline">
 						<div class="row vertical-chi">
 							<div class="horizon-par">
 								<div class="horizon-chi left">
@@ -300,33 +319,33 @@
 				                <tbody>
 				                    <tr row="">
 				                        <td>客户人数</td>
-				                        <td name="customerNum"><!--855-->/</td>
-				                        <td name="customerNumRate" type="per"><!--80%-->/</td>
+				                        <td name="customerNum">0</td>
+				                        <td name="customerNumRate" type="per">0.00%</td>
 				                    </tr>
 									<tr row="">
 										<td>注册人数</td>
-										<td name="registerNum">/</td>
-										<td name="registerNumRate" type="per">/</td>
+										<td name="registerNum">0</td>
+										<td name="registerNumRate" type="per">0.00%</td>
 									</tr>
 				                    <tr row="">
 				                        <td>关注人数</td>
-				                        <td name="attentionNum">/</td>
-				                        <td name="attentionNumRate" type="per">/</td>
+				                        <td name="attentionNum">0</td>
+				                        <td name="attentionNumRate" type="per">0.00%</td>
 				                    </tr>
 				                    <tr row="">
 				                        <td>认证人数</td>
-				                        <td name="identifyNum">/</td>
-				                        <td name="identifyNumRate" type="per">/</td>
+				                        <td name="identifyNum">0</td>
+				                        <td name="identifyNumRate" type="per">0.00%</td>
 				                    </tr>
 									<tr row="">
 										<td>房产户数</td>
-										<td name="propertyNum">/</td>
-										<td name="propertyNumRate" type="per">/</td>
+										<td name="propertyNum">0</td>
+										<td name="propertyNumRate" type="per">0.00%</td>
 									</tr>
 									<tr row="">
 										<td>认证房产户数</td>
-										<td name="identifyPropertyNum">/</td>
-										<td name="identifyPropertyNumRate" type="per">/</td>
+										<td name="identifyPropertyNum">0</td>
+										<td name="identifyPropertyNumRate" type="per">0.00%</td>
 									</tr>
 				                </tbody>
 				            </table>
@@ -355,28 +374,28 @@
 				                <tbody>
 				                    <tr row="">
 				                        <td>客户报事</td>
-				                        <td name="cusReport"><!--855-->/</td>
-				                        <td name="cusReportRate" type="per"><!--85%-->/</td>
+				                        <td name="cusReport">0</td>
+				                        <td name="cusReportRate" type="per">0.00%</td>
 				                    </tr>
 				                    <tr row="">
 				                        <td>业务办理</td>
-				                        <td name="bizHandle">/</td>
-				                        <td name="bizHandleRate" type="per">/</td>
+				                        <td name="bizHandle">0</td>
+				                        <td name="bizHandleRate" type="per">0.00%</td>
 				                    </tr>
 				                    <tr row="">
 				                        <td>访客授权</td>
-				                        <td name="visitorAccess">/</td>
-				                        <td name="visitorAccessRate" type="per">/</td>
+				                        <td name="visitorAccess">0</td>
+				                        <td name="visitorAccessRate" type="per">0.00%</td>
 				                    </tr>
 				                    <tr row="">
 				                        <td>开门次数</td>
-				                        <td name="openDoor">/</td>
-				                        <td name="openDoorRate" type="per">/</td>
+				                        <td name="openDoor">0</td>
+				                        <td name="openDoorRate" type="per">0.00%</td>
 				                    </tr>
 									<tr row="">
 										<td>缴纳欠费</td>
-										<td name="bill">/</td>
-										<td name="billRate" type="per">/</td>
+										<td name="bill">0</td>
+										<td name="billRate" type="per">0.00%</td>
 									</tr>
 				                </tbody>
 				            </table>
@@ -401,7 +420,7 @@
     </div>
 
 	<script src="assets/js/framework.js?v=${STARTUP}" ></script>
-	<!--<script src="assets/layer/layer.js?v=${STARTUP}" ></script>-->
+	<script src="assets/layer/layer.js?v=${STARTUP}" ></script>
     <script src="js/index.js"></script>
 </body>
 </html>
