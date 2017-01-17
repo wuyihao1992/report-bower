@@ -137,8 +137,8 @@ Highcharts.setOptions({
  * 2 - 测试全部模块 TEST:false,TESTALL:true
  * 3 - dependencies TEST:false,TESTALL:false
  * **/
-const TEST = false;
-const TESTALL = false;
+var TEST = false;
+var TESTALL = false;
 
 var O = {
     root: "http://poly.hengtech.com.cn/pmsSrv/api/api!gateway.action",
@@ -157,15 +157,15 @@ var O = {
     tranCode:[],
 
     slider: function () {
-        let control = navigator.control || {};
+        var control = navigator.control || {};
         if (control.gesture) {
             control.gesture(false);
         }
 
-        let page='pageNav',
+        var page='pageNav',
             slide='slider';
 
-        let touch=new TouchSlider({
+        var touch=new TouchSlider({
             id: slide,
             auto: '-1',
             fx: 'ease-out',
@@ -173,7 +173,7 @@ var O = {
             speed: 600,
             timeout: 5000,
             before: function(index){
-                let list=document.getElementById(this.page).getElementsByTagName('li');
+                var list=document.getElementById(this.page).getElementsByTagName('li');
                 list[this.p].className = '';
                 list[index].className = 'active';
 
@@ -193,26 +193,26 @@ var O = {
         touch.p = 0;
 
         $('.subSlider').on('click','.subTab>a',function (e) {
-            let $this = $(e.target);
+            var $this = $(e.target);
             $this.addClass('active');
             $this.siblings().removeClass('active');
 
             O.manager(); //切换二级tab重新加载table、flow
         }).on('click','table.clickTrue tbody tr',function (e) {
-            let $this = $(e.target);
+            var $this = $(e.target);
             if ($this.is('td')){
-                let $tr = $this.parent('tr');
+                var $tr = $this.parent('tr');
                 if ($tr.hasClass('head')){
                     return;
                 }
                 $tr.addClass('active');
                 $tr.siblings().removeClass('active');
 
-                let rowType = $tr.attr("row");
+                var rowType = $tr.attr("row");
                 O.flowManager(rowType,{}); //重新画图
             }
         }).on('click','table thead .rate',function (e) {
-            let $this = $(e.target),
+            var $this = $(e.target),
                 _this;
             if ($this.is(".rate")){
                 _this = $this;
@@ -220,10 +220,10 @@ var O = {
             if ($this.is(".q")){
                 _this = $this.parent(".rate");
             }
-            let $q = $(".q",_this);
+            var $q = $(".q",_this);
 
             if ($q.length > 0){
-                let $i = $("var",_this); //$i = $("i",_this);
+                var $i = $("var",_this); //$i = $("i",_this);
                 if ($i.is(":visible")){
                     return;
                 }
@@ -238,37 +238,37 @@ var O = {
     },
 
     tableManager: function () {
-        let date = new Date(),t = (new Date().getTime()) - 24*3600*1000;
-        let $subContent = $(".subContent",O.$currentPage),
+        var date = new Date(),t = (new Date().getTime()) - 24*3600*1000;
+        var $subContent = $(".subContent",O.$currentPage),
             dateType = $('.subTab > a.active',O.$currentPage).data('type') || 1,
             timer = (new Date(t)).pattern("yyyy-MM-dd");
-        let $table = $("table",$subContent),
+        var $table = $("table",$subContent),
             $nowDate = $(".header .nowDate",O.$currentPage);
-        let $i = $("thead .rate var",$table); //$i = $("thead .rate i",$table);
+        var $i = $("thead .rate var",$table); //$i = $("thead .rate i",$table);
 
         if ($i.length > 0){
             $i.text((dateType==1&&"(昨日值-前日值 )/前日值") || (dateType==2&&"(本周累计昨日值-上周同期累计值 )/上周同期累计值") || (dateType==3&&"(本月累计昨日值-上月同期累计值 )/上月同期累计值"));
         }
 
         if (dateType != undefined){
-            let week = date.getDay();
-            let temT = week==0 ? ((new Date().getTime()) - 24*3600*1000*7) : ((new Date().getTime()) - 24*3600*1000*week);
+            var week = date.getDay();
+            var temT = week==0 ? ((new Date().getTime()) - 24*3600*1000*7) : ((new Date().getTime()) - 24*3600*1000*week);
             // week = week==1?'周一':('周一 至 周'+ O.weekMap(week));
             week = (new Date(temT)).pattern("yyyy/MM/dd") + ' 至 ' + (new Date(t)).pattern("yyyy/MM/dd"); //上周日-昨天
 
-            let month = date.getMonth(),
+            var month = date.getMonth(),
                 fullYear = date.getFullYear();
             // month = month==0?'一月':('一月 至 '+ O.monthMap(month));
             month = month==0 ? (fullYear+'/01') : (fullYear+'/01' + ' 至 '+ fullYear + '/' + O.monthMap2(month));
 
-            let str = (dateType==1 && ((new Date(t)).pattern("yyyy/MM/dd"))) || (dateType==2 && week) || (dateType==3 && month);
+            var str = (dateType==1 && ((new Date(t)).pattern("yyyy/MM/dd"))) || (dateType==2 && week) || (dateType==3 && month);
             $nowDate.text('('+ str +')');
         }else{
-            let str = '截止'+ (new Date(t)).pattern("yyyy/MM/dd"); //date.pattern("yyyy/MM/dd")
+            var str = '截止'+ (new Date(t)).pattern("yyyy/MM/dd"); //date.pattern("yyyy/MM/dd")
             $nowDate.text('('+ str +')');
         }
 
-        let jsonData = JSON.stringify({
+        var jsonData = JSON.stringify({
             tranCode : O.tranCode[O.currentIndex],
             isEncryption : 0,
             bizContent : {
@@ -281,7 +281,7 @@ var O = {
             }
         });
 
-        let layerIndex = layer.load(2,{shade: [0.1,'#fff']});
+        var layerIndex = layer.load(2,{shade: [0.1,'#fff']});
         if(O.currentIndex == 0){
             $(".layui-layer-loading").css({
                 "top": "50%",
@@ -306,8 +306,8 @@ var O = {
                 }
 
                 if (result.responseJSON && result.responseJSON.msgCode != undefined && result.responseJSON.msgCode == 0){
-                    let  data = result.responseJSON.bizContent;
-                    for (let key in data){
+                    var  data = result.responseJSON.bizContent;
+                    for (var key in data){
                         if (!Array.isArray(data[key]) && typeof data[key] !== 'object'){
                             data[key] = parseFloat(data[key]);
                         }
@@ -315,9 +315,9 @@ var O = {
 
                     //表格分类处理
                     if ($table.length > 0){
-                        let $tbody = $("tbody",$table[0]);
-                        let $activeTr = $("tr.active",$tbody);
-                        let rowType = $activeTr.attr("row");
+                        var $tbody = $("tbody",$table[0]);
+                        var $activeTr = $("tr.active",$tbody);
+                        var rowType = $activeTr.attr("row");
 
                         O.writeHtml($table,data);
 
@@ -327,7 +327,7 @@ var O = {
                             O.flowManager("null",data);
                         }
                     }else{
-                        let $square = $(".square",O.$currentPage);
+                        var $square = $(".square",O.$currentPage);
                         O.writeHtml($square,data);
                     }
                 }
@@ -344,16 +344,16 @@ var O = {
      * @param rowType 表格中有详细内容的项目,对应numType(即为numType),无则为undefined或null或""
      * **/
     flowManager: function (rowType,data) {
-        let $flow = $(".flow",O.$currentPage);
+        var $flow = $(".flow",O.$currentPage);
         if ($flow.length > 0){
-            let dateType = $('.subTab > a.active',O.$currentPage).data('type') || 1;
+            var dateType = $('.subTab > a.active',O.$currentPage).data('type') || 1;
 
-            let chartType = $flow.data("type"),
+            var chartType = $flow.data("type"),
                 id = $flow.attr("id"),
                 options = {},
                 category = [],
                 series = [];
-            let $chart = $('#' + id);
+            var $chart = $('#' + id);
 
             if(rowType == undefined || rowType == "" || rowType== "null"){
                 if (chartType == 'area'){
@@ -369,9 +369,9 @@ var O = {
                 options = O.flowOption(category,series,chartType,dateType);
                 $chart.highcharts(Highcharts.merge(options,{}));
             }else{
-                let t = (new Date().getTime()) - 24*3600*1000;
-                let timer = (new Date(t)).pattern("yyyy-MM-dd");
-                let subData = JSON.stringify({
+                var t = (new Date().getTime()) - 24*3600*1000;
+                var timer = (new Date(t)).pattern("yyyy-MM-dd");
+                var subData = JSON.stringify({
                     tranCode : O.tranCode[O.currentIndex],
                     isEncryption : 0,
                     bizContent : {
@@ -384,13 +384,13 @@ var O = {
                     }
                 });
 
-                let loadOption = {
+                var loadOption = {
                     chart: {
                         type: chartType,
                         renderTo: id,
                     }
                 };
-                let charts = new Highcharts.Chart(loadOption);
+                var charts = new Highcharts.Chart(loadOption);
                 charts.hideNoData();
                 charts.showLoading();
 
@@ -400,16 +400,16 @@ var O = {
                     dataType: 'json',
                     data: subData,
                     complete: function (re) {
-                        let respone;
+                        var respone;
                         if (re.responseJSON && re.responseJSON.msgCode!=undefined && re.responseJSON.msgCode==0){
                             respone = re.responseJSON.bizContent;
 
                             if (chartType == 'area'){
                                 respone = respone.data;
-                                for (let j in respone){
+                                for (var j in respone){
                                     respone[j].num = parseFloat(respone[j].num);
                                     if (dateType == 1){
-                                        let arr = (respone[j].time.split(' '))[1]; //日:{time:"2016-12-12 08",num:"3"}
+                                        var arr = (respone[j].time.split(' '))[1]; //日:{time:"2016-12-12 08",num:"3"}
                                         category.push(arr);
                                     }else if(dateType == 2){
                                         category.push(respone[j].time);
@@ -420,7 +420,7 @@ var O = {
                                     series.push(respone[j].num);
                                 }
                             }else if(chartType=='column'){
-                                for (let j in respone){
+                                for (var j in respone){
                                     respone[j] = parseFloat(respone[j]);
                                     category = ['现金','POS','银行托收','转账','支票','微信','支付宝','其他'];
                                     series.push(respone[j]);
@@ -460,14 +460,14 @@ var O = {
      * @param String dateType 日期类型{1:日,2:周,3:月}
      * **/
     flowOption: function (category,series,chartType,dateType) {
-        let options = {};
+        var options = {};
         if (chartType == 'area'){
             options = {
                 chart: {
                     type:'area',
                     events: {
                         load: function() {
-                            let series = this.series;
+                            var series = this.series;
                         }
                     }
                 },
@@ -480,7 +480,7 @@ var O = {
                     categories: category,
                     labels: {
                         formatter:function(){
-                            let val;
+                            var val;
                             /*
                              switch (parseInt(dateType)){
                              case 1:
@@ -512,7 +512,7 @@ var O = {
                 tooltip:{
                     backgroundColor: '#ff6347',
                     formatter:function(){
-                        let xVal;
+                        var xVal;
                         /*
                          switch (parseInt(dateType)){
                          case 1:
@@ -669,14 +669,14 @@ var O = {
         if (data == undefined || data == null || data == {}){
             return;
         }
-        let tableName = $table.data("name") || "null";
+        var tableName = $table.data("name") || "null";
         switch (tableName){
             case "postit":
-                let current = data.curreDate,
+                var current = data.curreDate,
                     last = data.lastDate;
-                let len = current.length;
-                for (let i = 0;i<len;i++){
-                    let currCom = current[i].Comple,
+                var len = current.length;
+                for (var i = 0;i<len;i++){
+                    var currCom = current[i].Comple,
                         currAll = current[i].All,
                         lastCom = last[i].Comple,
                         lastAll = last[i].All;
@@ -733,16 +733,16 @@ var O = {
                 data.taskCountRate = O.getRate(data.taskCount,data.pre_taskCount,1);
                 data.taskCompleteCountRate = O.getRate(data.taskCompleteCount,data.pre_taskCompleteCount,1);
 
-                let taskRangeTime = O.getRate(data.time,data.taskCompleteCount,2);
+                var taskRangeTime = O.getRate(data.time,data.taskCompleteCount,2);
                 data.taskRangeTime = taskRangeTime;
 
-                let taskRangeTimeRate = O.getRate(taskRangeTime,O.getRate(data.pre_time,data.pre_taskCompleteCount,2),1);
+                var taskRangeTimeRate = O.getRate(taskRangeTime,O.getRate(data.pre_time,data.pre_taskCompleteCount,2),1);
                 data.taskRangeTimeRate = taskRangeTimeRate;
 
-                let completeRate = O.getRate(data.taskCompleteCount,data.taskCount,2);
+                var completeRate = O.getRate(data.taskCompleteCount,data.taskCount,2);
                 data.completeRate = completeRate;
 
-                let passCompleteRate = O.getRate(completeRate,O.getRate(data.pre_taskCompleteCount,data.pre_taskCount,2),1);
+                var passCompleteRate = O.getRate(completeRate,O.getRate(data.pre_taskCompleteCount,data.pre_taskCount,2),1);
                 data.passCompleteRate = passCompleteRate;
                 break;
             case "patrol_item":
@@ -788,14 +788,14 @@ var O = {
                 break;
         }
 
-        let $tr = $('tbody tr',$table);  // $('[row="'+i+'"]',$table);
+        var $tr = $('tbody tr',$table);  // $('[row="'+i+'"]',$table);
         if($tr.length <= 0){
             $tr = $table;  //.square
         }
 
-        for (let k in data){
-            let  $td = $("[name='"+k+"']",$tr);
-            let type = $td.attr("type");
+        for (var k in data){
+            var  $td = $("[name='"+k+"']",$tr);
+            var type = $td.attr("type");
             if (type == "per"){
                 if (data[k] < 0){
                     $td.addClass("lowRed");
@@ -827,7 +827,7 @@ var O = {
      * return float
      * **/
     getRate: function (a,b,type) {
-        let rate;
+        var rate;
         a = parseFloat(a);
         b = parseFloat(b);
         if (a <= 0 || a==null || a==undefined || isNaN(a)){
@@ -848,13 +848,13 @@ var O = {
      * return hh:mm:ss
      * **/
     longTime: function (a) {
-        let hh = parseInt(a/3600);
+        var hh = parseInt(a/3600);
         if(hh < 10) hh = "0" + hh;
-        let mm = parseInt((a - hh*3600)/60);
+        var mm = parseInt((a - hh*3600)/60);
         if(mm < 10) mm = "0" + mm;
-        let ss = parseInt((a - hh*3600)%60);
+        var ss = parseInt((a - hh*3600)%60);
         if(ss < 10) ss = "0" + ss;
-        let length = hh + ":" + mm + ":" + ss;
+        var length = hh + ":" + mm + ":" + ss;
         if(a > 0){
             return length;
         }
@@ -865,7 +865,7 @@ var O = {
      * js周描述 return string
      * **/
     weekMap: function (week) {
-        let desc = {"1":"一","2":"二","3":"三","4":"四","5":"五","6":"六","0":"日",undefined:""};
+        var desc = {"1":"一","2":"二","3":"三","4":"四","5":"五","6":"六","0":"日",undefined:""};
         return desc[week];
     },
 
@@ -873,12 +873,12 @@ var O = {
      * js月描述 return string
      * **/
     monthMap: function (month) {
-        let desc = {"0":"一","1":"二","2":"三","3":"四","4":"五","5":"六","6":"七","7":"八","8":"九","9":"十","10":"十一","11":"十二",undefined:""};
+        var desc = {"0":"一","1":"二","2":"三","3":"四","4":"五","5":"六","6":"七","7":"八","8":"九","9":"十","10":"十一","11":"十二",undefined:""};
         return desc[month];
     },
 
     monthMap2: function (month) {
-        let desc = {"0":"01","1":"02","2":"03","3":"04","4":"05","5":"06","6":"07","7":"08","8":"09","9":"10","10":"11","11":"12",undefined:""};
+        var desc = {"0":"01","1":"02","2":"03","3":"04","4":"05","5":"06","6":"07","7":"08","8":"09","9":"10","10":"11","11":"12",undefined:""};
         return desc[month];
     }
 };
@@ -888,7 +888,7 @@ $(function () {
         if (TEST){
             $("#loading .text").html("Testing,Please wait...");
 
-            let t = '{"grade":4,"orgId":100960,"authCodeList":[{"code":"hygj_report"},{"code":"hygj_report_postit"},{"code":"hygj_report_charge"},{"code":"hygj_report_patrol_task"},{"code":"hygj_report_patrol_item"},{"code":"hygj_report_online"},{"code":"hygj_report_wxonline"},{"code":"hygj_report_wxusers_analysis"},{"code":"hygj_report_wx_operation"}]}';
+            var t = '{"grade":4,"orgId":100960,"authCodeList":[{"code":"hygj_report"},{"code":"hygj_report_postit"},{"code":"hygj_report_charge"},{"code":"hygj_report_patrol_task"},{"code":"hygj_report_patrol_item"},{"code":"hygj_report_online"},{"code":"hygj_report_wxonline"},{"code":"hygj_report_wxusers_analysis"},{"code":"hygj_report_wx_operation"}]}';
             t = '{"grade":4,"orgId":100960,"authCodeList":[{"code":"hygj_report_wxonline"},{"code":"hygj_report_wxusers_analysis"},{"code":"hygj_report_wx_operation"}]}';
             t = '{"grade":4,"orgId":91387,"authCodeList":[{"code":"hygj_report_postit"},{"code":"hygj_report_online"},{"code":"hygj_report_wxonline"},{"code":"hygj_report_wxusers_analysis"}]}';
             init(t);
@@ -896,7 +896,7 @@ $(function () {
             O.tranCode = [3025,2413,3020,3020,3026,3023,3022,3024];
             O.grade = 4;
             O.orgId = 91492;
-            let $loading = $("#loading");
+            var $loading = $("#loading");
             $(".text",$loading).html("Testing,Please wait...");
             $("#pageNav > li").eq(0).addClass("active");
             $loading.hide();
@@ -908,25 +908,25 @@ $(function () {
 });
 
 function init(respone) {
-    let json = $.parseJSON(respone),
+    var json = $.parseJSON(respone),
         $slider = $("#slider"),
         $mainTabWrap = $(".mainTabWrap");
-    let $sliderContentUl = $(".sliderContentUl > li",$slider),
+    var $sliderContentUl = $(".sliderContentUl > li",$slider),
         $pageNav = $("#pageNav > li",$mainTabWrap);
-    let tempTranCode = [3025,2413,3020,3020,3026,3023,3022,3024];
+    var tempTranCode = [3025,2413,3020,3020,3026,3023,3022,3024];
 
     O.grade = json.grade;
     O.orgId = json.orgId;
 
-    let jsonCode = json.authCodeList;
-    let isd = [];
+    var jsonCode = json.authCodeList;
+    var isd = [];
 
     $sliderContentUl.each(function (i) {
-        let _this = $(this);
-        let code = "hygj_report_" + _this.data("name");
-        let isDelete = true;
+        var _this = $(this);
+        var code = "hygj_report_" + _this.data("name");
+        var isDelete = true;
 
-        for (let k in jsonCode){
+        for (var k in jsonCode){
             if (code == jsonCode[k].code){
                 isDelete = false;
                 break;
