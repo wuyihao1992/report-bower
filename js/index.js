@@ -181,7 +181,7 @@
                 },
                 after: function (i) {
                     if(O.currentIndex == i){
-                        return; //重复滑动
+                        return;
                     }else{
                         O.currentIndex = i;
                         O.manager();
@@ -276,7 +276,7 @@
                     orgId: O.orgId,
                     grade: O.grade,
                     type : dateType,
-                    datetype: 1, //数据展示形态 1 汇总，2 明细
+                    datetype: 1, //数据展示形态 1:汇总,2:明细
                     numType: ''
                 }
             });
@@ -296,7 +296,6 @@
                 type: 'POST',
                 dataType: 'json',
                 data: jsonData,
-                // timeout : 15000,
                 async: true,
                 complete: function (result,status) {
                     layer.close(layerIndex);
@@ -310,7 +309,7 @@
                         let  data = result.responseJSON.bizContent;
                         for (let key in data){
                             if (!Array.isArray(data[key]) && typeof data[key] !== 'object'){
-                                data[key] = parseFloat(data[key]);  //数据处理：string to float
+                                data[key] = parseFloat(data[key]);
                             }
                         }
 
@@ -323,7 +322,7 @@
                             O.writeHtml($table,data);
 
                             if (rowType != undefined){
-                                O.flowManager(rowType,{});  //ajax请求
+                                O.flowManager(rowType,{}); //ajax
                             }else{
                                 O.flowManager("null",data);
                             }
@@ -381,7 +380,7 @@
                             grade: O.grade,
                             type: dateType,
                             datetype: 2,
-                            numType: rowType  //1:客户报事,2:客户工单,3:内部报事,4:内部工单
+                            numType: rowType //1:客户报事,2:客户工单,3:内部报事,4:内部工单
                         }
                     });
 
@@ -400,9 +399,8 @@
                         type: 'POST',
                         dataType: 'json',
                         data: subData,
-                        complete: function (re,status) {
+                        complete: function (re) {
                             let respone;
-
                             if (re.responseJSON && re.responseJSON.msgCode!=undefined && re.responseJSON.msgCode==0){
                                 respone = re.responseJSON.bizContent;
 
@@ -411,8 +409,7 @@
                                     for (let j in respone){
                                         respone[j].num = parseFloat(respone[j].num);
                                         if (dateType == 1){
-                                            //日 {time: "2016-12-12 08", num: "3"}
-                                            let arr = (respone[j].time.split(' '))[1];
+                                            let arr = (respone[j].time.split(' '))[1]; //日:{time:"2016-12-12 08",num:"3"}
                                             category.push(arr);
                                         }else if(dateType == 2){
                                             category.push(respone[j].time);
@@ -432,7 +429,6 @@
                                     series = respone.inspectAbnormal;
                                 }
                             }else{
-                                //无数据
                                 if (chartType == 'area'){
                                     category = [];
                                     series = [];
@@ -485,22 +481,23 @@
                         labels: {
                             formatter:function(){
                                 let val;
+                                /*
                                 switch (parseInt(dateType)){
                                     case 1:
                                         val = this.value;
                                         break;
                                     case 2:
-                                        // val = '周' + O.weekMap(this.value);
-                                        val = this.value;
+                                        val = this.value; // '周' + O.weekMap(this.value);
                                         break;
                                     case 3:
-                                        val = this.value;
-                                        // val = Highcharts.dateFormat('%Y/%m/%d',this.value);
+                                        val = this.value; // Highcharts.dateFormat('%Y/%m/%d',this.value);
                                         break;
                                     default:
                                         val = this.value;
                                         break;
                                 }
+                                */
+                                val = this.value;
                                 return val; // return Highcharts.dateFormat('%H:%M',this.value);
                             }
                         }
@@ -516,23 +513,27 @@
                         backgroundColor: '#ff6347',
                         formatter:function(){
                             let xVal;
+                            /*
                             switch (parseInt(dateType)){
                                 case 1:
                                     xVal = this.x+':00-'+this.x+':59';
                                     break;
                                 case 2:
-                                    // xVal = '周' + O.weekMap(this.x);
-                                    xVal = this.x;
+                                    xVal = this.x; // '周' + O.weekMap(this.x);
                                     break;
                                 case 3:
-                                    xVal = this.x;
-                                    // xVal = Highcharts.dateFormat('%Y/%m/%d',this.x);
+                                    xVal = this.x; // Highcharts.dateFormat('%Y/%m/%d',this.x);
                                     break;
                                 default:
                                     xVal = this.x;
                                     break;
                             }
-
+                            */
+                            if (parseInt(dateType) == 1){
+                                xVal = this.x+':00-'+this.x+':59';
+                            }else{
+                                xVal = this.x;
+                            }
                             return '时间点:'+ xVal +'<br/>'+'报事量:'+this.y; //return '<b>'+this.series.name+'</b><br/>'+'时间点:'+Highcharts.dateFormat('%H:%M',this.x)+'<br/>'+'报事量:'+this.y;
                         }
                     }
@@ -668,7 +669,7 @@
             if (data == undefined || data == null || data == {}){
                 return;
             }
-            let tableName = $table.data("name") || "null"; //charge
+            let tableName = $table.data("name") || "null";
             switch (tableName){
                 case "postit":
                     let current = data.curreDate,
@@ -787,7 +788,7 @@
                     break;
             }
 
-            let $tr = $('tbody tr',$table);  // let $tr = $('[row="'+i+'"]',$table);
+            let $tr = $('tbody tr',$table);  // $('[row="'+i+'"]',$table);
             if($tr.length <= 0){
                 $tr = $table;  //.square
             }
@@ -803,7 +804,7 @@
                     }
                     $td.html((data[k]*100).toFixed(2) + '%');
                 }else if (type == "timeCount"){
-                    $td.html(O.longTime(data[k])); //时间转换
+                    $td.html(O.longTime(data[k]));
                 }else if(type == "area"){
                     $td.html(data[k]);
                 }else{
@@ -904,23 +905,6 @@
         }
     }());
 
-    /**
-     * json:{
-                grade : 1,
-                orgId : 1234,
-                authCodeList:[
-                    {code: "hygj_report"}, //****报表****
-                    {code: "hygj_report_postit"}, //报事统计
-                    {code: "hygj_report_charge"}, //缴费统计
-                    {code: "hygj_report_patrol_task"}, //巡检任务统计
-                    {code: "hygj_report_patrol_item"}, //巡检项统计
-                    {code: "hygj_report_online"}, //上线统计
-                    {code: "hygj_report_wxonline"}, //微信上线统计
-                    {code: "hygj_report_wxusers_analysis"}, //微信用户统计
-                    {code: "hygj_report_wx_operation"} //微信运营统计
-                ]
-            };
-     * **/
     function init(respone) {
         let json = $.parseJSON(respone),
             $slider = $("#slider"),
@@ -952,8 +936,6 @@
             if (isDelete){
                 $sliderContentUl.eq(i).remove();
                 $pageNav.eq(i).remove();
-                // $sliderContentUl.eq(k).attr("delete",true);
-                // $pageNav.eq(k).attr("delete",true);
             }else{
                 O.tranCode.push(tempTranCode[i]);
             }
@@ -986,18 +968,10 @@
          if (isDelete){
          $sliderContentUl.eq(k).remove();
          $pageNav.eq(k).remove();
-         // $sliderContentUl.eq(k).attr("delete",true);
-         // $pageNav.eq(k).attr("delete",true);
          }else{
          O.tranCode.push(tempTranCode[k]);
          }
          }
-         */
-
-        /*
-         console.info(jsonCode);
-         console.info(isd);
-         console.log(O.tranCode);
          */
 
         $("#pageNav > li",$mainTabWrap).eq(0).addClass("active");
