@@ -296,7 +296,7 @@ var O = {
             type: 'POST',
             dataType: 'json',
             data: jsonData,
-            async: true,
+            contentType: 'application/json',
             complete: function (result,status) {
                 layer.close(layerIndex);
 
@@ -399,6 +399,7 @@ var O = {
                     type: 'POST',
                     dataType: 'json',
                     data: subData,
+                    contentType: 'application/json',
                     complete: function (re) {
                         var respone;
                         if (re.responseJSON && re.responseJSON.msgCode!=undefined && re.responseJSON.msgCode==0){
