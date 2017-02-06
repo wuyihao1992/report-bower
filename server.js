@@ -8,7 +8,7 @@ var proxySrv = function(req, res) {
 		hostname: 'poly.hengtech.com.cn',
 		port: 80,
 		// path: req.url.replace(/^\/api/,''),
-        path: '/pmsSrv' +  req.url,
+        path: req.url, //'/pmsSrv' +  req.url
 		method: 'POST'
 	};
 

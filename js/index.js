@@ -142,7 +142,7 @@ var TESTALL = false;
 
 var O = {
     root: "http://poly.hengtech.com.cn/pmsSrv/api/api!gateway.action",
-    postUrl: '/api/api!gateway.action',
+    postUrl: '/pmsSrv/api/api!gateway.action',
 
     currentIndex: 0,
     $currentPage: null,
