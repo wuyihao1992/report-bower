@@ -259,7 +259,8 @@ var O = {
             var month = date.getMonth(),
                 fullYear = date.getFullYear();
             // month = month==0?'一月':('一月 至 '+ O.monthMap(month));
-            month = month==0 ? (fullYear+'/01') : (fullYear+'/01' + ' 至 '+ fullYear + '/' + O.monthMap2(month));
+            // month = month==0 ? (fullYear+'/01') : (fullYear+'/01' + ' 至 '+ fullYear + '/' + O.monthMap2(month));
+            month = fullYear+'/'+O.monthMap2(month)+'/01'+ ' 至 ' + (new Date(t)).pattern("yyyy/MM/dd");
 
             var str = (dateType==1 && ((new Date(t)).pattern("yyyy/MM/dd"))) || (dateType==2 && week) || (dateType==3 && month);
             $nowDate.text('('+ str +')');
@@ -675,37 +676,52 @@ var O = {
             case "postit":
                 var current = data.curreDate,
                     last = data.lastDate;
+                if(current==undefined || current.length<=0){
+                    current = [{"name":"客户报事","numType":"1","Comple":"0","All":"0"},{"name":"客户工单","numType":"2","Comple":"0","All":"0"},{"name":"内部报事","numType":"3","Comple":"0","All":"0"},{"name":"内部工单","numType":"4","Comple":"0","All":"0"}];
+                }
+
                 var len = current.length;
                 for (var i = 0;i<len;i++){
-                    var currCom = current[i].Comple,
-                        currAll = current[i].All,
-                        lastCom = last[i].Comple,
-                        lastAll = last[i].All;
+                    var currCom = current[i].Comple || 0,
+                        currAll = current[i].All || 0,
+                        lastCom = 0,
+                        lastAll = 0;
 
                     switch (parseInt(current[i].numType)){
                         case 1:
                             data.complete1 = currCom;
+                            data.all1 = currAll;
                             data.complete1Count = O.getRate(data.complete1,currAll,2);
                             break;
                         case 2:
                             data.complete2 = currCom;
+                            data.all2 = currAll;
                             data.complete2Count = O.getRate(data.complete2,currAll,2);
                             break;
                         case 3:
                             data.complete3 = currCom;
+                            data.all3 = currAll;
                             data.complete3Count = O.getRate(data.complete3,currAll,2);
                             break;
                         case 4:
                             data.complete4 = currCom;
+                            data.all4 = currAll;
                             data.complete4Count = O.getRate(data.complete4,currAll,2);
                             break;
                         default:
                             break;
                     }
+                    if (last[i] == undefined){
+                        last[i] = current[i];
+                        last[i].Comple = 0;
+                        last[i].All = 0;
+                    }
+                    lastCom = last[i].Comple;
+                    lastAll = last[i].All;
+
                     switch (parseInt(last[i].numType)){
                         case 1:
                             data.lastComplete1 = lastCom;
-                            // data.complete1Count = data.complete1 / currAll;
                             break;
                         case 2:
                             data.lastComplete2 = lastCom;
@@ -887,6 +903,8 @@ var O = {
 $(function () {
     (function initialize() {
         if (TEST){
+            O.postUrl = '/api/api!gateway.action';
+
             $("#loading .text").html("Testing,Please wait...");
 
             var t = '{"grade":4,"orgId":100960,"authCodeList":[{"code":"hygj_report"},{"code":"hygj_report_postit"},{"code":"hygj_report_charge"},{"code":"hygj_report_patrol_task"},{"code":"hygj_report_patrol_item"},{"code":"hygj_report_online"},{"code":"hygj_report_wxonline"},{"code":"hygj_report_wxusers_analysis"},{"code":"hygj_report_wx_operation"}]}';
@@ -894,6 +912,8 @@ $(function () {
             t = '{"grade":4,"orgId":91387,"authCodeList":[{"code":"hygj_report_postit"},{"code":"hygj_report_online"},{"code":"hygj_report_wxonline"},{"code":"hygj_report_wxusers_analysis"}]}';
             init(t);
         }else if (TESTALL){
+            O.postUrl = '/api/api!gateway.action';
+
             O.tranCode = [3025,2413,3020,3020,3026,3023,3022,3024];
             O.grade = 4;
             O.orgId = 91492;
