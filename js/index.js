@@ -814,12 +814,17 @@ var O = {
             var  $td = $("[name='"+k+"']",$tr);
             var type = $td.attr("type");
             if (type == "per"){
-                if (data[k] < 0){
-                    $td.addClass("lowRed");
-                }else {
+                if (typeof data[k] == "string"){
                     $td.removeClass("lowRed");
+                    $td.html(data[k]);
+                }else{
+                    if (data[k] < 0){
+                        $td.addClass("lowRed");
+                    }else {
+                        $td.removeClass("lowRed");
+                    }
+                    $td.html((data[k]*100).toFixed(2) + '%');
                 }
-                $td.html((data[k]*100).toFixed(2) + '%');
             }else if (type == "timeCount"){
                 $td.html(O.longTime(data[k]));
             }else if(type == "area"){
@@ -831,19 +836,49 @@ var O = {
     },
 
     /**
-     * (1)增长率计算 公式：(本期-上期)/上期
+     * (1)增长率计算
      * @param Float a 本期
      * @param Float b 上期
      * @param Int type 1
+     * 1.当上期数据为正数时，公式：利润增长率=（本期/上期-1）*100%，应用于企业非亏损状态。
+     * 2.当上期数据为负数时，公式：亏损增长率=[1-(本期/上期)]*100%，应用于企业亏损状态或亏转盈状态。
      *
-     * (2)当期平均值计算 公式：完成数/总数
+     * (2)当期平均值计算
      * @param Float a 完成数
      * @param Float b 总数
      * @param Int type 2
+     * 公式：完成数/总数
      *
      * return float
      * **/
     getRate: function (a,b,type) {
+        var rate = 0;
+        a = parseFloat(a);
+        b = parseFloat(b);
+        var aIsNaN = a == 0 || a==null || a==undefined || isNaN(a),
+            bIsNaN = b==0 || b==null || b==undefined || isNaN(b);
+        if (bIsNaN){
+            rate = '--';
+        }else {
+            if (aIsNaN){
+                rate = 0;
+            }else {
+                if (type == 1){
+                    if (b > 0){
+                        rate = a/b-1;
+                    }else {
+                        rate = 1- (a/b);
+                    }
+                }else {
+                    rate = a/b;
+                }
+            }
+        }
+
+        return rate;
+    },
+
+    test: function (a,b,type) {
         var rate;
         a = parseFloat(a);
         b = parseFloat(b);
@@ -851,11 +886,47 @@ var O = {
             rate = 0;
         }else{
             if (b<=0 || b==null || b==undefined || isNaN(b)){
-                rate = 1; //100%
+                rate = 1;
             }else{
                 rate = type==1 ? ((a-b)/b) : (a/b);
             }
         }
+        return rate;
+    },
+
+    test2: function (a,b,type) {
+        var rate = 0;
+        a = parseFloat(a);
+        b = parseFloat(b);
+        var aIsNaN = a == 0 || a==null || a==undefined || isNaN(a),
+            bIsNaN = b==0 || b==null || b==undefined || isNaN(b);
+        if (bIsNaN){
+            if (aIsNaN){
+                rate = 0;
+            }else{
+                if (a < 0){
+                    rate = -1;
+                }else {
+                    rate = 1;
+                }
+            }
+        }else {
+            if (aIsNaN){
+                if (b < 0){
+                    rate = 1;
+                }else {
+                    rate = -1;
+                }
+            }else {
+                if (type == 1){
+                    var c = a-b;
+                    rate = c/(Math.abs(b));
+                }else {
+                    rate = a/b;
+                }
+            }
+        }
+
         return rate;
     },
 
