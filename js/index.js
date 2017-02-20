@@ -428,7 +428,8 @@ var O = {
                                     series.push(respone[j]);
                                 }
                             }else if (chartType=='solidgauge'){
-                                series = respone.inspectAbnormal;
+                                // series = respone.inspectAbnormal;
+                                series = (respone.inspectAbnormal / respone.inspectCount *100).toFixed(2);
                             }
                         }else{
                             if (chartType == 'area'){
