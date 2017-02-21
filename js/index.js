@@ -589,7 +589,7 @@ var O = {
                     // floating: true,
                     align: 'center',
                     verticalAlign:'middle',
-                    text: '<b style="color:#ff6347;font-size: 2.4rem;">'+series+'%</b><br>异常项',
+                    text: '<b style="color:#ff6347;font-size: 2.4rem;">'+series+'%</b><br>异常率',
                     style: {
                         fontSize: '1.2rem',
                         textAlign : 'center',
