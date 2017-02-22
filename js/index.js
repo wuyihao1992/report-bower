@@ -148,8 +148,8 @@ var O = {
     $currentPage: null,
     currentDateType: 1,
 
-    orgId: 91492,
-    grade: 4,
+    orgId: 40150,
+    grade: 2,
 
     /**
      * [报事,缴费,巡检任务,巡检项,上线统计,微信上线概括,微信用户分析,微信运营情况]
@@ -331,6 +331,18 @@ var O = {
                         var $square = $(".square",O.$currentPage);
                         O.writeHtml($square,data);
                     }
+                }else{
+                    if (TEST || TESTALL){
+                         var data = {
+                            "inspectAbnormal": 5,
+                            "inspectCompleteCount": 17,
+                            "inspectCount": 57912,
+                            "time": 125,
+                            "taskCount": 10498,
+                            "taskCompleteCount": 3,
+                        };
+                        O.flowManager("null",data);
+                    }
                 }
             },
             error: function (xhr) {
@@ -364,8 +376,8 @@ var O = {
                     category = ['现金','POS','银行托收','转账','支票','微信','支付宝','其他'];
                     series = [data.cash,data.pos,data.delegate,data.exchange,data.check,(data.wechatOnline+data.wechatOffline),(data.alipayOnline+data.alipayOffline),data.other];
                 }else if (chartType=='solidgauge'){
-                    // series = data.inspectAbnormal;
-                    series = (data.inspectAbnormal / data.inspectCompleteCount *100).toFixed(2);
+                    var tmpData = (O.getRate(data.inspectAbnormal,data.inspectCompleteCount,2)*100).toFixed(2);
+                    series = parseFloat(tmpData);
                 }
 
                 options = O.flowOption(category,series,chartType,dateType);
@@ -429,8 +441,8 @@ var O = {
                                     series.push(respone[j]);
                                 }
                             }else if (chartType=='solidgauge'){
-                                // series = respone.inspectAbnormal;
-                                series = (respone.inspectAbnormal / respone.inspectCompleteCount *100).toFixed(2);
+                                var tmpData = (O.getRate(respone.inspectAbnormal,respone.inspectCompleteCount,2)*100).toFixed(2);
+                                series = parseFloat(tmpData);
                             }
                         }else{
                             if (chartType == 'area'){
@@ -627,7 +639,12 @@ var O = {
                     min: 0,
                     max: 100,
                     lineWidth: 0,
-                    tickPositions: []
+                    tickPositions: [],
+                    labels: {
+                        formatter:function(){
+                            return Highcharts.numberFormat(this.value, 2);
+                        }
+                    }
                 },
                 plotOptions: {
                     solidgauge: {
@@ -989,8 +1006,8 @@ $(function () {
             O.postUrl = '/api/api!gateway.action';
 
             O.tranCode = [3025,2413,3020,3020,3026,3023,3022,3024];
-            O.grade = 4;
-            O.orgId = 91492;
+            O.grade = 2;
+            O.orgId = 40150;
             var $loading = $("#loading");
             $(".text",$loading).html("Testing,Please wait...");
             $("#pageNav > li").eq(0).addClass("active");
