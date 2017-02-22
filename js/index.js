@@ -364,7 +364,8 @@ var O = {
                     category = ['现金','POS','银行托收','转账','支票','微信','支付宝','其他'];
                     series = [data.cash,data.pos,data.delegate,data.exchange,data.check,(data.wechatOnline+data.wechatOffline),(data.alipayOnline+data.alipayOffline),data.other];
                 }else if (chartType=='solidgauge'){
-                    series = data.inspectAbnormal;
+                    // series = data.inspectAbnormal;
+                    series = (data.inspectAbnormal / data.inspectCompleteCount *100).toFixed(2);
                 }
 
                 options = O.flowOption(category,series,chartType,dateType);
