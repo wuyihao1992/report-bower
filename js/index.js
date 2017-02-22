@@ -956,6 +956,7 @@ var O = {
      * return hh:mm:ss
      * **/
     longTime: function (a) {
+        a = Math.round(a);
         var hh = parseInt(a/3600);
         if(hh < 10) hh = "0" + hh;
         var mm = parseInt((a - hh*3600)/60);
