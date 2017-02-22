@@ -429,7 +429,7 @@ var O = {
                                 }
                             }else if (chartType=='solidgauge'){
                                 // series = respone.inspectAbnormal;
-                                series = (respone.inspectAbnormal / respone.inspectCount *100).toFixed(2);
+                                series = (respone.inspectAbnormal / respone.inspectCompleteCount *100).toFixed(2);
                             }
                         }else{
                             if (chartType == 'area'){
@@ -773,6 +773,7 @@ var O = {
                 break;
             case "wxonline":
                 //不用处理数据
+                data.total_pay = data.total_pay / 100;
                 break;
             case "wxusers_analysis":
                 data.customerNum = data.currentPeriod.customerNum;
@@ -859,7 +860,7 @@ var O = {
         var aIsNaN = a == 0 || a==null || a==undefined || isNaN(a),
             bIsNaN = b==0 || b==null || b==undefined || isNaN(b);
         if (bIsNaN){
-            rate = '--';
+            rate = type==1 ? '--' : 0;
         }else {
             if (aIsNaN){
                 rate = 0;
