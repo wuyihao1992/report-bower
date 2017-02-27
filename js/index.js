@@ -138,7 +138,7 @@ Highcharts.setOptions({
  * 3 - dependencies TEST:false,TESTALL:false
  * **/
 var TEST = false;
-var TESTALL = false;
+var TESTALL = true;
 
 var O = {
     root: "http://poly.hengtech.com.cn/pmsSrv/api/api!gateway.action",
@@ -240,11 +240,12 @@ var O = {
     tableManager: function () {
         var date = new Date(),t = (new Date().getTime()) - 24*3600*1000;
         var $subContent = $(".subContent",O.$currentPage),
-            dateType = $('.subTab > a.active',O.$currentPage).data('type') || 1,
+            dateType = $('.subTab > a.active',O.$currentPage).data('type') || 1, //日期类型
             timer = (new Date(t)).pattern("yyyy-MM-dd");
         var $table = $("table",$subContent),
             $nowDate = $(".header .nowDate",O.$currentPage);
         var $i = $("thead .rate var",$table); //$i = $("thead .rate i",$table);
+        var tableName = $table.data("name");
 
         if ($i.length > 0){
             $i.text((dateType==1&&"(昨日值-前日值 )/前日值") || (dateType==2&&"(本周累计昨日值-上周同期累计值 )/上周同期累计值") || (dateType==3&&"(本月累计昨日值-上月同期累计值 )/上月同期累计值"));
@@ -253,34 +254,46 @@ var O = {
         if (dateType != undefined){
             var week = date.getDay();
             var temT = week==0 ? ((new Date().getTime()) - 24*3600*1000*7) : ((new Date().getTime()) - 24*3600*1000*week);
-            // week = week==1?'周一':('周一 至 周'+ O.weekMap(week));
             week = (new Date(temT)).pattern("yyyy/MM/dd") + ' 至 ' + (new Date(t)).pattern("yyyy/MM/dd"); //上周日-昨天
 
             var month = date.getMonth(),
                 fullYear = date.getFullYear();
-            // month = month==0?'一月':('一月 至 '+ O.monthMap(month));
-            // month = month==0 ? (fullYear+'/01') : (fullYear+'/01' + ' 至 '+ fullYear + '/' + O.monthMap2(month));
             month = fullYear+'/'+O.monthMap2(month)+'/01'+ ' 至 ' + (new Date(t)).pattern("yyyy/MM/dd");
 
             var str = (dateType==1 && ((new Date(t)).pattern("yyyy/MM/dd"))) || (dateType==2 && week) || (dateType==3 && month);
             $nowDate.text('('+ str +')');
         }else{
-            var str = '截止'+ (new Date(t)).pattern("yyyy/MM/dd"); //date.pattern("yyyy/MM/dd")
+            var str = '截止'+ (new Date(t)).pattern("yyyy/MM/dd");
             $nowDate.text('('+ str +')');
         }
 
-        var jsonData = JSON.stringify({
+        var jsonData;
+        jsonData = JSON.stringify({
             tranCode : O.tranCode[O.currentIndex],
             isEncryption : 0,
             bizContent : {
                 date: timer, //'2016-12-12' timer
                 orgId: O.orgId,
                 grade: O.grade,
-                type : dateType,
+                type: dateType,
                 datetype: 1, //数据展示形态 1:汇总,2:明细
                 numType: ''
             }
         });
+
+        if (tableName == "charge"){
+            var chargeDate = O.formDate(1,dateType); //charge 当期
+            jsonData = JSON.stringify({
+                tranCode: O.tranCode[O.currentIndex],
+                isEncryption: 0,
+                bizContent: {
+                    orgId: O.orgId,
+                    grade: O.grade,
+                    begin: chargeDate.begin,
+                    end: chargeDate.end
+                }
+            });
+        }
 
         var layerIndex = layer.load(2,{shade: [0.1,'#fff']});
         if(O.currentIndex == 0){
@@ -292,6 +305,7 @@ var O = {
             });
         }
 
+        var data = {};
         $.ajax({
             url: O.postUrl,
             type: 'POST',
@@ -307,7 +321,7 @@ var O = {
                 }
 
                 if (result.responseJSON && result.responseJSON.msgCode != undefined && result.responseJSON.msgCode == 0){
-                    var  data = result.responseJSON.bizContent;
+                    data = result.responseJSON.bizContent;
                     for (var key in data){
                         if (!Array.isArray(data[key]) && typeof data[key] !== 'object'){
                             data[key] = parseFloat(data[key]);
@@ -315,25 +329,86 @@ var O = {
                     }
 
                     //表格分类处理
-                    if ($table.length > 0){
-                        var $tbody = $("tbody",$table[0]);
-                        var $activeTr = $("tr.active",$tbody);
-                        var rowType = $activeTr.attr("row");
+                    if (tableName == "charge"){
+                        var layerIndex2 = layer.load(2,{shade: [0.1,'#fff']});
+                        var lastChargeDate = O.formDate(2,dateType); //charge 上期
+                        var jso = JSON.stringify({
+                            tranCode: O.tranCode[O.currentIndex],
+                            isEncryption: 0,
+                            bizContent: {
+                                orgId: O.orgId,
+                                grade: O.grade,
+                                begin: lastChargeDate.begin,
+                                end: lastChargeDate.end
+                            }
+                        });
+                        $.ajax({
+                            url: O.postUrl,
+                            type: 'POST',
+                            dataType: 'json',
+                            data: jso,
+                            contentType: 'application/json',
+                            complete: function (resp,sta) {
+                                layer.close(layerIndex2);
+                                if(sta=='timeout'){
+                                    layer.msg('请求上期数据超时,请稍后重试!',{icon: 2,shift:3});
+                                    return;
+                                }
 
-                        O.writeHtml($table,data);
+                                if (resp.responseJSON && resp.responseJSON.msgCode != undefined && resp.responseJSON.msgCode == 0){
+                                    var  tmpData = resp.responseJSON.bizContent;
+                                    for (var key in tmpData){
+                                        if (!Array.isArray(tmpData[key]) && typeof tmpData[key] !== 'object'){
+                                            tmpData[key] = parseFloat(tmpData[key]);
+                                        }
+                                    }
 
-                        if (rowType != undefined){
-                            O.flowManager(rowType,{}); //ajax
-                        }else{
-                            O.flowManager("null",data);
-                        }
+                                    data.passOld = tmpData.thisOld; //上期实收往年
+                                    data.passPrepay = tmpData.thisPrepay; //上期预收
+                                    data.passNow = tmpData.thisNow; //上期实收本年
+
+                                    if ($table.length > 0){
+                                        var $tbody = $("tbody",$table[0]);
+                                        var $activeTr = $("tr.active",$tbody);
+                                        var rowType = $activeTr.attr("row");
+                                        // console.log(data);
+
+                                        O.writeHtml($table,data);
+
+                                        if (rowType != undefined){
+                                            O.flowManager(rowType,{}); //ajax
+                                        }else{
+                                            O.flowManager("null",data);
+                                        }
+                                    }else{
+                                        var $square = $(".square",O.$currentPage);
+                                        O.writeHtml($square,data);
+                                    }
+
+                                }
+                            }
+                        });
                     }else{
-                        var $square = $(".square",O.$currentPage);
-                        O.writeHtml($square,data);
+                        if ($table.length > 0){
+                            var $tbody = $("tbody",$table[0]);
+                            var $activeTr = $("tr.active",$tbody);
+                            var rowType = $activeTr.attr("row");
+
+                            O.writeHtml($table,data);
+
+                            if (rowType != undefined){
+                                O.flowManager(rowType,{}); //ajax
+                            }else{
+                                O.flowManager("null",data);
+                            }
+                        }else{
+                            var $square = $(".square",O.$currentPage);
+                            O.writeHtml($square,data);
+                        }
                     }
                 }else{
                     if (TEST || TESTALL){
-                         var data = {
+                        data = {
                             "inspectAbnormal": 5,
                             "inspectCompleteCount": 17,
                             "inspectCount": 57912,
@@ -373,8 +448,8 @@ var O = {
                     category = [];
                     series = [];
                 }else if (chartType=='column'){
-                    category = ['现金','POS','银行托收','转账','支票','微信','支付宝','其他'];
-                    series = [data.cash,data.pos,data.delegate,data.exchange,data.check,(data.wechatOnline+data.wechatOffline),(data.alipayOnline+data.alipayOffline),data.other];
+                    category = ['现金','POS','银行托收','转账','支票','微信-线上','微信-线下','支付宝-线上','支付宝-线下','其他'];
+                    series = [data.cash,data.pos,data.delegate,data.exchange,data.check,data.wechatOnline,data.wechatOffline,data.alipayOnline,data.alipayOffline,data.other];
                 }else if (chartType=='solidgauge'){
                     var tmpData = (O.getRate(data.inspectAbnormal,data.inspectCompleteCount,2)*100).toFixed(2);
                     series = parseFloat(tmpData);
@@ -437,7 +512,7 @@ var O = {
                             }else if(chartType=='column'){
                                 for (var j in respone){
                                     respone[j] = parseFloat(respone[j]);
-                                    category = ['现金','POS','银行托收','转账','支票','微信','支付宝','其他'];
+                                    category = ['现金','POS','银行托收','转账','支票','微信-线上','微信-线下','支付宝-线上','支付宝-线下','其他'];
                                     series.push(respone[j]);
                                 }
                             }else if (chartType=='solidgauge'){
@@ -449,7 +524,7 @@ var O = {
                                 category = [];
                                 series = [];
                             }else if (chartType=='column'){
-                                category = ['现金','POS','银行托收','转账','支票','微信','支付宝','其他'];
+                                category = ['现金','POS','银行托收','转账','支票','微信-线上','微信-线下','支付宝-线上','支付宝-线下','其他'];
                                 series = [];
                             }else if (chartType=='solidgauge'){
                                 series = 0;
@@ -693,72 +768,167 @@ var O = {
         var tableName = $table.data("name") || "null";
         switch (tableName){
             case "postit":
+                /*
+                data = {
+                    "curreDate": [
+                        {
+                            "name": "客户报事",
+                            "numType": "1",
+                            "Comple": "0",
+                            "All": "1"
+                        },
+                        {
+                            "name": "客户工单",
+                            "numType": "2",
+                            "Comple": "0",
+                            "All": "1"
+                        },
+                        {
+                            "name": "内部报事",
+                            "numType": "3",
+                            "Comple": "0",
+                            "All": "4"
+                        },
+                        {
+                            "name": "内部工单",
+                            "numType": "4",
+                            "Comple": "0",
+                            "All": "0"
+                        }
+                    ],
+                    "lastDate": [
+                        {
+                            "name": "客户报事",
+                            "numType": "1",
+                            "Comple": "15",
+                            "All": "37"
+                        },
+                        {
+                            "name": "客户工单",
+                            "numType": "2",
+                            "Comple": "15",
+                            "All": "36"
+                        },
+                        {
+                            "name": "内部报事",
+                            "numType": "3",
+                            "Comple": "1",
+                            "All": "26"
+                        },
+                        {
+                            "name": "内部工单",
+                            "numType": "4",
+                            "Comple": "1",
+                            "All": "22"
+                        }
+                    ]
+                };
+                */
                 var current = data.curreDate,
                     last = data.lastDate;
+                var defaultData = [{"name":"客户报事","numType":"1","Comple":"0","All":"0"},{"name":"客户工单","numType":"2","Comple":"0","All":"0"},{"name":"内部报事","numType":"3","Comple":"0","All":"0"},{"name":"内部工单","numType":"4","Comple":"0","All":"0"}];
+
                 if(current==undefined || current.length<=0){
-                    current = [{"name":"客户报事","numType":"1","Comple":"0","All":"0"},{"name":"客户工单","numType":"2","Comple":"0","All":"0"},{"name":"内部报事","numType":"3","Comple":"0","All":"0"},{"name":"内部工单","numType":"4","Comple":"0","All":"0"}];
+                    current = defaultData;
+                }else {
+                    if (current.length < 4){
+                        for (var k in defaultData){
+                            var flag = false;
+                            for (var key in current){
+                                if (parseInt(defaultData[k].numType) == parseInt(current[key].numType)){
+                                    flag = true;
+                                }
+                            }
+
+                            if (!flag){
+                                current.push(defaultData[k]);
+                            }
+                        }
+                    }
+                }
+
+                if (last==undefined || last.length<=0){
+                    last = defaultData;
+                }else {
+                    if (last.length < 4){
+                        for (var k in defaultData){
+                            var flag = false;
+                            for (var key in last){
+                                if (parseInt(defaultData[k].numType) == parseInt(last[key].numType)){
+                                    flag = true;
+                                }
+                            }
+
+                            if (!flag){
+                                last.push(defaultData[k]);
+                            }
+                        }
+                    }
                 }
 
                 var len = current.length;
                 for (var i = 0;i<len;i++){
                     var currCom = current[i].Comple || 0,
                         currAll = current[i].All || 0,
-                        lastCom = 0,
-                        lastAll = 0;
+                        lastCom = last[i].Comple || 0,
+                        lastAll = last[i].All || 0;
 
                     switch (parseInt(current[i].numType)){
                         case 1:
                             data.complete1 = currCom;
-                            data.all1 = currAll;
+                            data.currAll1 = currAll;
                             data.complete1Count = O.getRate(data.complete1,currAll,2);
                             break;
                         case 2:
                             data.complete2 = currCom;
-                            data.all2 = currAll;
+                            data.currAll2 = currAll;
                             data.complete2Count = O.getRate(data.complete2,currAll,2);
                             break;
                         case 3:
                             data.complete3 = currCom;
-                            data.all3 = currAll;
+                            data.currAll3 = currAll;
                             data.complete3Count = O.getRate(data.complete3,currAll,2);
                             break;
                         case 4:
                             data.complete4 = currCom;
-                            data.all4 = currAll;
+                            data.currAll4 = currAll;
                             data.complete4Count = O.getRate(data.complete4,currAll,2);
                             break;
                         default:
                             break;
                     }
-                    if (last[i] == undefined){
-                        last[i] = current[i];
-                        last[i].Comple = 0;
-                        last[i].All = 0;
-                    }
-                    lastCom = last[i].Comple;
-                    lastAll = last[i].All;
 
                     switch (parseInt(last[i].numType)){
                         case 1:
                             data.lastComplete1 = lastCom;
+                            data.lastAll1 = lastAll;
                             break;
                         case 2:
                             data.lastComplete2 = lastCom;
+                            data.lastAll2 = lastAll;
                             break;
                         case 3:
                             data.lastComplete3 = lastCom;
+                            data.lastAll3 = lastAll;
                             break;
                         case 4:
                             data.lastComplete4 = lastCom;
+                            data.lastAll4 = lastAll;
                             break;
                         default:
                             break;
                     }
                 }
+                /*
                 data.complete1Rate = O.getRate(data.complete1,data.lastComplete1,1);
                 data.complete2Rate = O.getRate(data.complete2,data.lastComplete2,1);
                 data.complete3Rate = O.getRate(data.complete3,data.lastComplete3,1);
                 data.complete4Rate = O.getRate(data.complete4,data.lastComplete4,1);
+                */
+                data.complete1Rate = O.getRate(data.currAll1,data.lastAll1,1);
+                data.complete2Rate = O.getRate(data.currAll2,data.lastAll2,1);
+                data.complete3Rate = O.getRate(data.currAll3,data.lastAll3,1);
+                data.complete4Rate = O.getRate(data.currAll4,data.lastAll4,1);
                 break;
             case "charge":
                 data.thisOldRate = O.getRate(data.thisOld,data.passOld,1);
@@ -825,6 +995,8 @@ var O = {
                 break;
         }
 
+        console.info(data);
+
         var $tr = $('tbody tr',$table);  // $('[row="'+i+'"]',$table);
         if($tr.length <= 0){
             $tr = $table;  //.square
@@ -848,9 +1020,9 @@ var O = {
             }else if (type == "timeCount"){
                 $td.html(O.longTime(data[k]));
             }else if(type == "area"){
-                $td.html(data[k]);
+                $td.html(data[k]==null?"--":data[k]);
             }else{
-                $td.html(data[k]);
+                $td.html(data[k]==null?"--":data[k]);
             }
         }
     },
@@ -875,7 +1047,7 @@ var O = {
         var rate = 0;
         a = parseFloat(a);
         b = parseFloat(b);
-        var aIsNaN = a == 0 || a==null || a==undefined || isNaN(a),
+        var aIsNaN = a==null || a==undefined || isNaN(a),
             bIsNaN = b==0 || b==null || b==undefined || isNaN(b);
         if (bIsNaN){
             rate = type==1 ? '--' : 0;
@@ -972,9 +1144,102 @@ var O = {
 
     /***
      * 时间节点计算
-     *
+     * @param Int type 类型 {1:当期,2:上期}
+     * @param Int dateType 日期类型 {1:日,2:周,3:月}
      * return {begin:"2016-01-01",end:"2016-01-02"}
      * ***/
+    formDate: function (type,dateType) {
+        //now = 2017/02/23
+        var obj = {begin:"",end:""},
+            nowDate = new Date(),
+            desc = {"0":"01","1":"02","2":"03","3":"04","4":"05","5":"06","6":"07","7":"08","8":"09","9":"10","10":"11","11":"12",undefined:""};
+
+        nowDate.setDate(nowDate.getDate() - 1); //2017/02/22
+
+        var thisYear = nowDate.getFullYear(), //2017
+            thisMonth = nowDate.getMonth(), //02
+            thisDay = nowDate.getDay(); //22
+
+        var nowDayStr = (new Date(nowDate)).pattern("yyyy-MM-dd"); //昨天时间 2017/02/22
+
+        var getFullDays = function (y,m) {
+            m = m + 1;
+            if(m == 2){
+                return y % 4 == 0 ? 29 : 28;
+            }else if(m == 1 || m == 3 || m == 5 || m == 7 || m == 8 || m == 10 || m == 12){
+                return 31;
+            }else{
+                return 30;
+            }
+        };
+
+        var thisMonthDays = getFullDays(thisYear,thisMonth);
+
+        if (type == 1){
+            switch (dateType) {
+                case 1:
+                    obj.begin = nowDayStr;
+                    break;
+                case 2:
+                    var temT = thisDay==0 ? (nowDate.getTime() - 24*3600*1000*7) : (nowDate.getTime() - 24*3600*1000*thisDay);
+                    obj.begin = (new Date(temT)).pattern("yyyy-MM-dd");
+                    break;
+                case 3:
+                    obj.begin = thisYear+'-'+ desc[thisMonth] +'-01';
+                    break;
+                default:
+                    break;
+            }
+            obj.end = nowDayStr;
+        }else {
+            switch (dateType) {
+                case 1:
+                    //日: 前天 - 前天
+                    var lastDayDate = new Date(nowDate.setDate(nowDate.getDate() - 1));
+                    var lastDayStr = (new Date(lastDayDate)).pattern("yyyy-MM-dd"); //前天时间 2017/02/21
+                    obj.begin = lastDayStr;
+                    // obj.end = nowDayStr;
+                    obj.end = lastDayStr;
+                    break;
+                case 2:
+                    //周: 上上周六 - 上周的今天
+                    var lastWeekDate = new Date(nowDate.setDate(nowDate.getDate() - 7)); //上一周的今天
+                    var lastWeekDay = new Date(lastWeekDate).getDay();
+                    var lastWeekDayStr = lastWeekDate.pattern("yyyy-MM-dd");
+
+                    var temT = lastWeekDay==0 ? (lastWeekDate.getTime() - 24*3600*1000*7) : (lastWeekDate.getTime() - 24*3600*1000*lastWeekDay);
+                    obj.begin = (new Date(temT)).pattern("yyyy-MM-dd");
+                    obj.end = lastWeekDayStr;
+                    break;
+                case 3:
+                    //月: 上一月1号 - 上月的今天
+                    // thisMonth = parseInt(thisMonth)+1;
+                    var lastMonthDate = new Date(thisYear+'/'+thisMonth+'/'+'01'); //new Date(thisYear,thisMonth,0); 月份已经减了1 -> 02
+                    // lastMonthDate.setMonth(lastMonthDate.getMonth()-1);
+
+                    var lastMonthYear = lastMonthDate.getFullYear(),
+                        lastMonthMonth = lastMonthDate.getMonth();
+
+                    var lastMonthDays = getFullDays(lastMonthYear,lastMonthMonth),
+                        lastMonthDayStr = '';
+                    if(thisDay > lastMonthDays){
+                        //当期的月份天数大于上期月份天数
+                        lastMonthDayStr = lastMonthYear+'-'+ desc[lastMonthMonth] +'-' + lastMonthDays;
+                    }else{
+                        var endDate = new Date(nowDate.setDate(nowDate.getDate() - lastMonthDays));
+                        lastMonthDayStr = endDate.pattern("yyyy-MM-dd"); //上个月的今天
+                    }
+
+                    obj.begin = lastMonthYear+'-'+ desc[lastMonthMonth]+'-01';
+                    obj.end = lastMonthDayStr;
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        return obj;
+    },
 
     /**
      * js周描述 return string
@@ -1008,13 +1273,14 @@ $(function () {
             var t = '{"grade":4,"orgId":100960,"authCodeList":[{"code":"hygj_report"},{"code":"hygj_report_postit"},{"code":"hygj_report_charge"},{"code":"hygj_report_patrol_task"},{"code":"hygj_report_patrol_item"},{"code":"hygj_report_online"},{"code":"hygj_report_wxonline"},{"code":"hygj_report_wxusers_analysis"},{"code":"hygj_report_wx_operation"}]}';
             t = '{"grade":4,"orgId":100960,"authCodeList":[{"code":"hygj_report_wxonline"},{"code":"hygj_report_wxusers_analysis"},{"code":"hygj_report_wx_operation"}]}';
             t = '{"grade":4,"orgId":91387,"authCodeList":[{"code":"hygj_report_postit"},{"code":"hygj_report_online"},{"code":"hygj_report_wxonline"},{"code":"hygj_report_wxusers_analysis"}]}';
+            t = '{"grade":4,"orgId":91387,"authCodeList":[{"code":"hygj_report"},{"code":"hygj_report_charge"}]}';
             init(t);
         }else if (TESTALL){
             O.postUrl = '/api/api!gateway.action';
 
             O.tranCode = [3025,2413,3020,3020,3026,3023,3022,3024];
-            O.grade = 2;
-            O.orgId = 40150;
+            O.grade = 4; //4
+            O.orgId = 97035; //91492
             var $loading = $("#loading");
             $(".text",$loading).html("Testing,Please wait...");
             $("#pageNav > li").eq(0).addClass("active");

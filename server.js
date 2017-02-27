@@ -2,11 +2,12 @@
 
 var browserSync = require('browser-sync').create();
 var http = require('http');
-var TEST = false;
+var TEST = true,
+	dev = {0:"poly.hengtech.com.cn",1:"uat.hengtech.com.cn",2:"train.hengtech.com.cn",3:"wechat.kai-men.cn"};
 
 var proxySrv = function(req, res) {
 	var options = {
-		hostname: 'uat.hengtech.com.cn',
+        hostname: dev[3],
 		port: 80,
 		// path: req.url.replace(/^\/api/,''),
         path:  (TEST ? '/pmsSrv' : '') +  req.url,
