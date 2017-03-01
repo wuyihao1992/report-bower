@@ -138,7 +138,7 @@ Highcharts.setOptions({
  * 3 - dependencies TEST:false,TESTALL:false
  * **/
 var TEST = false;
-var TESTALL = true;
+var TESTALL = false;
 
 var O = {
     root: "http://poly.hengtech.com.cn/pmsSrv/api/api!gateway.action",
@@ -252,15 +252,19 @@ var O = {
         }
 
         if (dateType != undefined){
+
             var week = date.getDay();
             var temT = week==0 ? ((new Date().getTime()) - 24*3600*1000*7) : ((new Date().getTime()) - 24*3600*1000*week);
             week = (new Date(temT)).pattern("yyyy/MM/dd") + ' 至 ' + (new Date(t)).pattern("yyyy/MM/dd"); //上周日-昨天
 
             var month = date.getMonth(),
                 fullYear = date.getFullYear();
-            month = fullYear+'/'+O.monthMap2(month)+'/01'+ ' 至 ' + (new Date(t)).pattern("yyyy/MM/dd");
+            var ss = O.formDate(1,dateType);
+            // month = fullYear+'/'+O.monthMap2(month)+'/01'+ ' 至 ' + (new Date(t)).pattern("yyyy/MM/dd");
+            month = (ss.begin).replace(/-/gi,'/') + ' 至 ' + (ss.end).replace(/-/gi,'/');
 
             var str = (dateType==1 && ((new Date(t)).pattern("yyyy/MM/dd"))) || (dateType==2 && week) || (dateType==3 && month);
+
             $nowDate.text('('+ str +')');
         }else{
             var str = '截止'+ (new Date(t)).pattern("yyyy/MM/dd");
@@ -995,7 +999,7 @@ var O = {
                 break;
         }
 
-        console.info(data);
+        // console.info(data);
 
         var $tr = $('tbody tr',$table);  // $('[row="'+i+'"]',$table);
         if($tr.length <= 0){
@@ -1070,58 +1074,6 @@ var O = {
         return rate;
     },
 
-    test: function (a,b,type) {
-        var rate;
-        a = parseFloat(a);
-        b = parseFloat(b);
-        if (a <= 0 || a==null || a==undefined || isNaN(a)){
-            rate = 0;
-        }else{
-            if (b<=0 || b==null || b==undefined || isNaN(b)){
-                rate = 1;
-            }else{
-                rate = type==1 ? ((a-b)/b) : (a/b);
-            }
-        }
-        return rate;
-    },
-
-    test2: function (a,b,type) {
-        var rate = 0;
-        a = parseFloat(a);
-        b = parseFloat(b);
-        var aIsNaN = a == 0 || a==null || a==undefined || isNaN(a),
-            bIsNaN = b==0 || b==null || b==undefined || isNaN(b);
-        if (bIsNaN){
-            if (aIsNaN){
-                rate = 0;
-            }else{
-                if (a < 0){
-                    rate = -1;
-                }else {
-                    rate = 1;
-                }
-            }
-        }else {
-            if (aIsNaN){
-                if (b < 0){
-                    rate = 1;
-                }else {
-                    rate = -1;
-                }
-            }else {
-                if (type == 1){
-                    var c = a-b;
-                    rate = c/(Math.abs(b));
-                }else {
-                    rate = a/b;
-                }
-            }
-        }
-
-        return rate;
-    },
-
     /**
      * 时间长度转换
      * @param Int a 单位秒
@@ -1149,18 +1101,18 @@ var O = {
      * return {begin:"2016-01-01",end:"2016-01-02"}
      * ***/
     formDate: function (type,dateType) {
-        //now = 2017/02/23
         var obj = {begin:"",end:""},
-            nowDate = new Date(),
+            nowDate = new Date(), //now = 2017/02/23
             desc = {"0":"01","1":"02","2":"03","3":"04","4":"05","5":"06","6":"07","7":"08","8":"09","9":"10","10":"11","11":"12",undefined:""};
 
         nowDate.setDate(nowDate.getDate() - 1); //2017/02/22
 
         var thisYear = nowDate.getFullYear(), //2017
             thisMonth = nowDate.getMonth(), //02
-            thisDay = nowDate.getDay(); //22
+            thisDay = nowDate.getDay(); //0~6 星期
 
         var nowDayStr = (new Date(nowDate)).pattern("yyyy-MM-dd"); //昨天时间 2017/02/22
+        var nowDateCount = parseInt((nowDayStr.split('-'))[2]); // 当前天数 22
 
         var getFullDays = function (y,m) {
             m = m + 1;
@@ -1173,7 +1125,7 @@ var O = {
             }
         };
 
-        var thisMonthDays = getFullDays(thisYear,thisMonth);
+        var thisMonthDays = getFullDays(thisYear,thisMonth); //28
 
         if (type == 1){
             switch (dateType) {
@@ -1198,7 +1150,6 @@ var O = {
                     var lastDayDate = new Date(nowDate.setDate(nowDate.getDate() - 1));
                     var lastDayStr = (new Date(lastDayDate)).pattern("yyyy-MM-dd"); //前天时间 2017/02/21
                     obj.begin = lastDayStr;
-                    // obj.end = nowDayStr;
                     obj.end = lastDayStr;
                     break;
                 case 2:
@@ -1222,11 +1173,18 @@ var O = {
 
                     var lastMonthDays = getFullDays(lastMonthYear,lastMonthMonth),
                         lastMonthDayStr = '';
-                    if(thisDay > lastMonthDays){
-                        //当期的月份天数大于上期月份天数
-                        lastMonthDayStr = lastMonthYear+'-'+ desc[lastMonthMonth] +'-' + lastMonthDays;
+                    if(nowDateCount > lastMonthDays){
+                        //当期的月份天数大于上期月份总天数
+                        lastMonthDayStr = lastMonthYear+'-'+ desc[lastMonthMonth] +'-' + lastMonthDays; //取上个月最后一天
                     }else{
-                        var endDate = new Date(nowDate.setDate(nowDate.getDate() - lastMonthDays));
+                        //当期的月份天数小于上期月份总天数，判断当前时间是否为当期月份最后一天
+                        var endDate;
+                        if(nowDateCount == thisMonthDays){
+                            endDate = new Date(nowDate.setDate(nowDate.getDate() - nowDateCount));
+                        }else {
+                            endDate = new Date(nowDate.setDate(nowDate.getDate() - lastMonthDays));
+                        }
+
                         lastMonthDayStr = endDate.pattern("yyyy-MM-dd"); //上个月的今天
                     }
 
