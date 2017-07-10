@@ -154,7 +154,7 @@ var O = {
     /**
      * [报事,缴费,巡检任务,巡检项,上线统计,微信上线概括,微信用户分析,微信运营情况]
      * **/
-    tranCode:[],
+    tranCode: [],
 
     slider: function () {
         var control = navigator.control || {};
@@ -162,10 +162,10 @@ var O = {
             control.gesture(false);
         }
 
-        var page='pageNav',
-            slide='slider';
+        var page = 'pageNav',
+            slide = 'slider';
 
-        var touch=new TouchSlider({
+        var touch = new TouchSlider({
             id: slide,
             auto: '-1',
             fx: 'ease-out',
@@ -173,7 +173,7 @@ var O = {
             speed: 600,
             timeout: 5000,
             before: function(index){
-                var list=document.getElementById(this.page).getElementsByTagName('li');
+                var list = document.getElementById(this.page).getElementsByTagName('li');
                 list[this.p].className = '';
                 list[index].className = 'active';
 
@@ -197,7 +197,7 @@ var O = {
             $this.addClass('active');
             $this.siblings().removeClass('active');
 
-            O.manager(); //切换二级tab重新加载table、flow
+            O.manager();                        //切换二级tab重新加载table、flow
         }).on('click','table.clickTrue tbody tr',function (e) {
             var $this = $(e.target);
             if ($this.is('td')){
@@ -209,7 +209,7 @@ var O = {
                 $tr.siblings().removeClass('active');
 
                 var rowType = $tr.attr("row");
-                O.flowManager(rowType,{}); //重新画图
+                O.flowManager(rowType, {});      //重新画图
             }
         }).on('click','table thead .rate',function (e) {
             var $this = $(e.target),
@@ -220,10 +220,10 @@ var O = {
             if ($this.is(".q")){
                 _this = $this.parent(".rate");
             }
-            var $q = $(".q",_this);
+            var $q = $(".q", _this);
 
             if ($q.length > 0){
-                var $i = $("var",_this); //$i = $("i",_this);
+                var $i = $("var", _this);        //$i = $("i",_this);
                 if ($i.is(":visible")){
                     return;
                 }
@@ -238,13 +238,17 @@ var O = {
     },
 
     tableManager: function () {
-        var date = new Date(),t = (new Date().getTime()) - 24*3600*1000;
-        var $subContent = $(".subContent",O.$currentPage),
-            dateType = $('.subTab > a.active',O.$currentPage).data('type') || 1, //日期类型
+        var date = new Date(), t = (new Date().getTime()) - 24*3600*1000;
+
+        var $subContent = $(".subContent", O.$currentPage),
+            dateType = $('.subTab > a.active', O.$currentPage).data('type') || 1,    //日期类型
             timer = (new Date(t)).pattern("yyyy-MM-dd");
-        var $table = $("table",$subContent),
-            $nowDate = $(".header .nowDate",O.$currentPage);
-        var $i = $("thead .rate var",$table); //$i = $("thead .rate i",$table);
+
+        var $table = $("table", $subContent),                                       // 表格
+            $square = $(".square", O.$currentPage),                                 // 九宫格
+            $nowDate = $(".header .nowDate", O.$currentPage);
+
+        var $i = $("thead .rate var", $table);                                       //$i = $("thead .rate i", $table);
         var tableName = $table.data("name");
 
         if ($i.length > 0){
@@ -252,16 +256,16 @@ var O = {
         }
 
         if (dateType != undefined){
-
             var week = date.getDay();
+
             var temT = week==0 ? ((new Date().getTime()) - 24*3600*1000*7) : ((new Date().getTime()) - 24*3600*1000*week);
-            week = (new Date(temT)).pattern("yyyy/MM/dd") + ' 至 ' + (new Date(t)).pattern("yyyy/MM/dd"); //上周日-昨天
+            week = (new Date(temT)).pattern("yyyy/MM/dd") + ' 至 ' + (new Date(t)).pattern("yyyy/MM/dd");        //上周日-昨天
 
             var month = date.getMonth(),
                 fullYear = date.getFullYear();
-            var ss = O.formDate(1,dateType);
+            var ss = O.formDate(1, dateType);
             // month = fullYear+'/'+O.monthMap2(month)+'/01'+ ' 至 ' + (new Date(t)).pattern("yyyy/MM/dd");
-            month = (ss.begin).replace(/-/gi,'/') + ' 至 ' + (ss.end).replace(/-/gi,'/');
+            month = (ss.begin).replace(/-/gi, '/') + ' 至 ' + (ss.end).replace(/-/gi, '/');
 
             var str = (dateType==1 && ((new Date(t)).pattern("yyyy/MM/dd"))) || (dateType==2 && week) || (dateType==3 && month);
 
@@ -271,22 +275,55 @@ var O = {
             $nowDate.text('('+ str +')');
         }
 
-        var jsonData;
-        jsonData = JSON.stringify({
-            tranCode : O.tranCode[O.currentIndex],
-            isEncryption : 0,
-            bizContent : {
-                date: timer, //'2016-12-12' timer
+        /**
+         * TODO: 这里判断是否有session,同时要分类处理表格;先组装key
+         * 列表key = tableName + '-' + (dataType || '') 或者 squareName
+         */
+        var listKey;
+        if ($table.length > 0){
+            listKey = tableName + '-' + (dateType || '');
+        }else {
+            listKey = $square.data('name');
+        }
+
+        var listStorage = O.getStorage(listKey);            // 获取session
+        if (!!listStorage) {
+            console.log(listStorage, listKey);
+
+            if ($table.length > 0){
+                var $tbody = $("tbody", $table[0]);
+                var $activeTr = $("tr.active", $tbody);
+                var rowType = $activeTr.attr("row");
+
+                O.writeHtml($table, listStorage);           // 填充表格
+
+                if (rowType != undefined){
+                    O.flowManager(rowType, {});
+                }else{
+                    O.flowManager("null", listStorage);
+                }
+            }else{
+                O.writeHtml($square, listStorage);          // 九宫格填充
+            }
+
+            return;                                         // 退出ajax请求
+        }
+
+        var jsonData = JSON.stringify({
+            tranCode: O.tranCode[O.currentIndex],
+            isEncryption: 0,
+            bizContent: {
+                date: timer,                                //'2016-12-12' timer
                 orgId: O.orgId,
                 grade: O.grade,
                 type: dateType,
-                datetype: 1, //数据展示形态 1:汇总,2:明细
+                datetype: 1,                                //数据展示形态 1:汇总,2:明细
                 numType: ''
             }
         });
 
         if (tableName == "charge"){
-            var chargeDate = O.formDate(1,dateType); //charge 当期
+            var chargeDate = O.formDate(1, dateType);       //charge 当期
             jsonData = JSON.stringify({
                 tranCode: O.tranCode[O.currentIndex],
                 isEncryption: 0,
@@ -299,14 +336,9 @@ var O = {
             });
         }
 
-        var layerIndex = layer.load(2,{shade: [0.1,'#fff']});
+        var layerIndex = layer.load(2, {shade: [0.1, '#fff']});
         if(O.currentIndex == 0){
-            $(".layui-layer-loading").css({
-                "top": "50%",
-                "left": "45%",
-                "transform": "translate(-50%,-50%)",
-                "position": "absolute"
-            });
+            $(".layui-layer-loading").css({ "top": "50%", "left": "45%", "transform": "translate(-50%,-50%)", "position": "absolute" });
         }
 
         var data = {};
@@ -316,11 +348,11 @@ var O = {
             dataType: 'json',
             data: jsonData,
             contentType: 'application/json',
-            complete: function (result,status) {
+            complete: function (result, status) {
                 layer.close(layerIndex);
 
                 if(status=='timeout'){
-                    layer.msg('请求超时,请稍后重试!',{icon: 2,shift:3});
+                    layer.msg('请求超时,请稍后重试!',{icon: 2, shift:3});
                     return;
                 }
 
@@ -334,8 +366,9 @@ var O = {
 
                     //表格分类处理
                     if (tableName == "charge"){
-                        var layerIndex2 = layer.load(2,{shade: [0.1,'#fff']});
-                        var lastChargeDate = O.formDate(2,dateType); //charge 上期
+
+                        var layerIndex2 = layer.load(2, {shade: [0.1, '#fff']});
+                        var lastChargeDate = O.formDate(2, dateType);                //charge 上期
                         var jso = JSON.stringify({
                             tranCode: O.tranCode[O.currentIndex],
                             isEncryption: 0,
@@ -352,10 +385,10 @@ var O = {
                             dataType: 'json',
                             data: jso,
                             contentType: 'application/json',
-                            complete: function (resp,sta) {
+                            complete: function (resp, sta) {
                                 layer.close(layerIndex2);
-                                if(sta=='timeout'){
-                                    layer.msg('请求上期数据超时,请稍后重试!',{icon: 2,shift:3});
+                                if(sta == 'timeout'){
+                                    layer.msg('请求上期数据超时,请稍后重试!', {icon: 2, shift:3});
                                     return;
                                 }
 
@@ -367,50 +400,61 @@ var O = {
                                         }
                                     }
 
-                                    data.passOld = tmpData.thisOld; //上期实收往年
-                                    data.passPrepay = tmpData.thisPrepay; //上期预收
-                                    data.passNow = tmpData.thisNow; //上期实收本年
+                                    data.passOld = tmpData.thisOld;         // 上期实收往年
+                                    data.passPrepay = tmpData.thisPrepay;   // 上期预收
+                                    data.passNow = tmpData.thisNow;         // 上期实收本年
+
+                                    // TODO: 保存汇总列表数据的session(因缴费统计是特例,上期和今期分开接口统计)
+                                    O.setStorage(listKey, data);
 
                                     if ($table.length > 0){
-                                        var $tbody = $("tbody",$table[0]);
-                                        var $activeTr = $("tr.active",$tbody);
+                                        var $tbody = $("tbody", $table[0]);
+                                        var $activeTr = $("tr.active", $tbody);
                                         var rowType = $activeTr.attr("row");
-                                        // console.log(data);
 
-                                        O.writeHtml($table,data);
+                                        O.writeHtml($table, data);
 
                                         if (rowType != undefined){
-                                            O.flowManager(rowType,{}); //ajax
+                                            O.flowManager(rowType, {});     // ajax
                                         }else{
-                                            O.flowManager("null",data);
+                                            O.flowManager("null", data);
                                         }
                                     }else{
-                                        var $square = $(".square",O.$currentPage);
-                                        O.writeHtml($square,data);
+                                        O.writeHtml($square, data);         // 九宫格填充
                                     }
 
+                                }else {
+                                    // TODO: 请求上期数据成功但无数据
+                                    O.setStorage(listKey, {});
                                 }
                             }
                         });
+
                     }else{
+                        // TODO: 保存汇总列表数据的session
+                        O.setStorage(listKey, data);
+
                         if ($table.length > 0){
-                            var $tbody = $("tbody",$table[0]);
-                            var $activeTr = $("tr.active",$tbody);
+                            var $tbody = $("tbody", $table[0]);
+                            var $activeTr = $("tr.active", $tbody);
                             var rowType = $activeTr.attr("row");
 
-                            O.writeHtml($table,data);
+                            O.writeHtml($table, data);
 
                             if (rowType != undefined){
-                                O.flowManager(rowType,{}); //ajax
+                                O.flowManager(rowType, {});
                             }else{
-                                O.flowManager("null",data);
+                                O.flowManager("null", data);
                             }
                         }else{
-                            var $square = $(".square",O.$currentPage);
-                            O.writeHtml($square,data);
+                            O.writeHtml($square, data);
                         }
                     }
-                }else{
+
+                }else {
+                    // TODO: 请求汇总数据成功,但结果为空
+                    O.setStorage(listKey, {});
+
                     if (TEST || TESTALL){
                         data = {
                             "inspectAbnormal": 5,
@@ -420,13 +464,16 @@ var O = {
                             "taskCount": 10498,
                             "taskCompleteCount": 3,
                         };
-                        O.flowManager("null",data);
+                        O.flowManager("null", data);
                     }
                 }
             },
             error: function (xhr) {
                 layer.close(layerIndex);
-                O.flowManager("null",{});
+                O.flowManager("null", {});
+
+                // TODO: 请求汇总数据失败
+                O.setStorage(listKey, {});
             }
         });
     },
@@ -435,10 +482,10 @@ var O = {
      * 图表封装
      * @param rowType 表格中有详细内容的项目,对应numType(即为numType),无则为undefined或null或""
      * **/
-    flowManager: function (rowType,data) {
-        var $flow = $(".flow",O.$currentPage);
+    flowManager: function (rowType, data) {
+        var $flow = $(".flow", O.$currentPage);
         if ($flow.length > 0){
-            var dateType = $('.subTab > a.active',O.$currentPage).data('type') || 1;
+            var dateType = $('.subTab > a.active', O.$currentPage).data('type') || 1;
 
             var chartType = $flow.data("type"),
                 id = $flow.attr("id"),
@@ -462,27 +509,46 @@ var O = {
                 options = O.flowOption(category,series,chartType,dateType);
                 $chart.highcharts(Highcharts.merge(options,{}));
             }else{
+                /**
+                 * TODO: 保存详情数据session
+                 * 详情key = tableName + '-' + (dataType || '') + '-' + rowType
+                 */
+                var $table = $("table", O.$currentPage),
+                    detailKey;
+                if ($table.length > 0){
+                    var $tbody = $("tbody", $table[0]);
+                    var $activeTr = $("tr.active", $tbody);
+                    var rowType = $activeTr.attr("row");
+                    if (!!rowType) {
+                        detailKey = $table.data('name') + '-' + (dateType || '') + '-' + rowType;
+                    }
+                }
+
+                var detailStorage = O.getStorage(detailKey);
+                if (!!detailStorage) {
+                    console.log(detailStorage, detailKey);
+                    options = O.flowOption(detailStorage.category, detailStorage.series, detailStorage.chartType, detailStorage.dateType);     // 画图
+                    $chart.highcharts(Highcharts.merge(options, {}));
+
+                    return;                                                         // 退出ajax请求
+                }
+
                 var t = (new Date().getTime()) - 24*3600*1000;
                 var timer = (new Date(t)).pattern("yyyy-MM-dd");
                 var subData = JSON.stringify({
                     tranCode : O.tranCode[O.currentIndex],
                     isEncryption : 0,
                     bizContent : {
-                        date: timer, //'2016-12-12' timer
+                        date: timer,                //'2016-12-12' timer
                         orgId: O.orgId,
                         grade: O.grade,
                         type: dateType,
                         datetype: 2,
-                        numType: rowType //1:客户报事,2:客户工单,3:内部报事,4:内部工单
+                        numType: rowType            //1:客户报事,2:客户工单,3:内部报事,4:内部工单
                     }
                 });
 
-                var loadOption = {
-                    chart: {
-                        type: chartType,
-                        renderTo: id,
-                    }
-                };
+                var loadOption = { chart: { type: chartType, renderTo: id} };
                 var charts = new Highcharts.Chart(loadOption);
                 charts.hideNoData();
                 charts.showLoading();
@@ -503,7 +569,7 @@ var O = {
                                 for (var j in respone){
                                     respone[j].num = parseFloat(respone[j].num);
                                     if (dateType == 1){
-                                        var arr = (respone[j].time.split(' '))[1]; //日:{time:"2016-12-12 08",num:"3"}
+                                        var arr = (respone[j].time.split(' '))[1];      //日:{time:"2016-12-12 08",num:"3"}
                                         category.push(arr);
                                     }else if(dateType == 2){
                                         category.push(respone[j].time);
@@ -534,6 +600,14 @@ var O = {
                                 series = 0;
                             }
                         }
+
+                        // TODO: 保存详情数据
+                        O.setStorage(detailKey, {
+                            category: category,
+                            series: series,
+                            chartType: chartType,
+                            dateType: dateType
+                        });
 
                         options = O.flowOption(category,series,chartType,dateType);
                         $chart.highcharts(Highcharts.merge(options,{}));
@@ -1218,7 +1292,59 @@ var O = {
     monthMap2: function (month) {
         var desc = {"0":"01","1":"02","2":"03","3":"04","4":"05","5":"06","6":"07","7":"08","8":"09","9":"10","10":"11","11":"12",undefined:""};
         return desc[month];
+    },
+
+    /**
+     * 设置缓存数据,保存对象
+     * @param string key
+     * @param Array/Object/String val 如果传入字符串,则存入普通字符串.如果传入json,则存入json字符串
+     * @param int [type] {0: sessionStorage , 1: localStorage }, 默认为0
+     */
+    setStorage: function (key, val, type) {
+        var getType = Object.prototype.toString;
+
+        var setKey = function (k, v, ty) {
+            if (!!ty && ty == 1) {
+                localStorage.setItem(k, v);
+            }else {
+                sessionStorage.setItem(k, v);
+            }
+        };
+
+        if (getType.call(val) == '[object Object]' || getType.call(val) == '[object Array]') {
+            val = JSON.stringify(val);
+            setKey(key, val, type);
+        }else {
+            setKey(key, val, type);
+        }
+    },
+
+    /**
+     * 获取缓存数据
+     * @param string key
+     * @param int [type] 类型,可选. {0: sessionStorage , 1: localStorage }, 默认为0
+     * @param bool [isObject] 是否返回json对象,可选. 默认为true
+     */
+    getStorage: function (key, type, isObject) {
+        var storage;
+
+        var getKey = function (k, ty) {
+            if (!!ty && ty == 1) {
+                return localStorage.getItem(k);
+            }else {
+                return sessionStorage.getItem(k);
+            }
+        };
+
+        if (isObject != undefined && isObject == false) {
+            storage = getKey(key, type);
+        } else {
+            storage = JSON.parse(getKey(key, type));
+        }
+
+        return storage;
     }
+
 };
 
 $(function () {
