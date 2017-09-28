@@ -1354,7 +1354,7 @@ $(function () {
 
             $("#loading .text").html("Testing,Please wait...");
 
-            var t = '{"grade":4,"orgId":100960,"authCodeList":[{"code":"hygj_report"},{"code":"hygj_report_postit"},{"code":"hygj_report_charge"},{"code":"hygj_report_patrol_task"},{"code":"hygj_report_patrol_item"},{"code":"hygj_report_online"},{"code":"hygj_report_wxonline"},{"code":"hygj_report_wxusers_analysis"},{"code":"hygj_report_wx_operation"}]}';
+            var t = '{"grade":4,"orgId":100960,"authCodeList":[{"code":"hygj_report"},{"code":"hygj_report_postit"},{"code":"hygj_report_charge"},{"code":"hygj_report_patrol_task"},{"code":"hygj_report_patrol_item"},{"code":"hygj_report_online"},{"code":"hygj_report_wxonline"},{"code":"hygj_report_wxusers_analysis"},{"code":"hygj_report_wx_operation"},{"code":"hygj_report_login"}]}';
             t = '{"grade":4,"orgId":100960,"authCodeList":[{"code":"hygj_report_wxonline"},{"code":"hygj_report_wxusers_analysis"},{"code":"hygj_report_wx_operation"}]}';
             t = '{"grade":4,"orgId":91387,"authCodeList":[{"code":"hygj_report_postit"},{"code":"hygj_report_online"},{"code":"hygj_report_wxonline"},{"code":"hygj_report_wxusers_analysis"}]}';
             t = '{"grade":4,"orgId":91387,"authCodeList":[{"code":"hygj_report"},{"code":"hygj_report_charge"}]}';
@@ -1362,7 +1362,7 @@ $(function () {
         }else if (TESTALL){
             O.postUrl = '/api/api!gateway.action';
 
-            O.tranCode = [3025,2413,3020,3020,3026,3023,3022,3024];
+            O.tranCode = [3025, 2413, 3020, 3020, 3026, 3023, 3022, 3024, 2076];
             O.grade = 4; //4
             O.orgId = 97035; //91492
             var $loading = $("#loading");
@@ -1382,7 +1382,7 @@ function init(respone) {
         $mainTabWrap = $(".mainTabWrap");
     var $sliderContentUl = $(".sliderContentUl > li",$slider),
         $pageNav = $("#pageNav > li",$mainTabWrap);
-    var tempTranCode = [3025,2413,3020,3020,3026,3023,3022,3024];
+    var tempTranCode = [3025, 2413, 3020, 3020, 3026, 3023, 3022, 3024, 2076];
 
     O.grade = json.grade;
     O.orgId = json.orgId;

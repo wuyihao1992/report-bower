@@ -10,8 +10,8 @@
 	<meta content="yes" name="apple-mobile-web-app-capable" />
 	<meta content="black" name="apple-mobile-web-app-status-bar-style" />
 	<title>mobileReport</title>
-	<link rel="stylesheet" href="assets/css/framework.css?v=${STARTUP}" />
-	<link rel="stylesheet" href="css/index.css?v=${STARTUP}" />
+	<link rel="stylesheet" href="assets/css/framework.css?v=1.0" />
+	<link rel="stylesheet" href="css/index.css?v=1.0" />
 </head>
 
 <body style="overflow-y: scroll;overflow-x: hidden;">
@@ -401,7 +401,48 @@
 				        </div>			            
 			        </div>
 			    </div>					
-			</li>			
+			</li>
+			<li data-name="login" style="display: none;">
+				<div class="wrap">
+					<div class="header">登录统计<span class="nowDate">(0000/00/00)</span></div>
+					<div class="subSlider">
+						<div class="subTab">
+							<a href="javascript:;" class="active" data-type="1">日</a>
+							<a href="javascript:;" data-type="2">周</a>
+							<a href="javascript:;" data-type="3">月</a>
+						</div>
+						<div class="subContent">
+							<table class="clickTrue" data-name="login">
+								<thead>
+									<tr>
+										<td></td>
+										<td>当期</td>
+										<td class="rate">增长率<span class="q">&nbsp;?&nbsp;<var>(昨日值-前日值) /前日值</var></span><!--<i>(昨日值-前日值) /前日值</i>--></td>
+									</tr>
+								</thead>
+								<tbody>
+									<tr row="1" numType="1" class="active">
+										<td>系统登录次数</td>
+										<td name="currAll1">0</td>
+										<td name="complete1Rate" type="per">0.00%</td>
+									</tr>
+									<tr row="2" numType="2">
+										<td>和院管家登录次数</td>
+										<td name="currAll2">0</td>
+										<td name="complete2Rate" type="per">0.00%</td>
+									</tr>
+									<tr row="3" numType="3">
+										<td>和院痛登录次数</td>
+										<td name="currAll3">0</td>
+										<td name="complete3Rate" type="per">0.00%</td>
+									</tr>
+								</tbody>
+							</table>
+						</div>
+					</div>
+					<div class="flow flow-2" data-name="" data-type="area"></div>
+				</div>
+			</li>
 		</ul>    
 	</div>
     
@@ -415,11 +456,12 @@
             <li>6</li>
             <li>7</li>
             <li>8</li>
+			<li>9</li>
         </ul>
     </div>
 
-	<script src="assets/js/framework.js?v=${STARTUP}" ></script>
-	<script src="assets/layer/layer.js?v=${STARTUP}" ></script>
+	<script src="assets/js/framework.js?v=1.0" ></script>
+	<script src="assets/layer/layer.js?v=1.0" ></script>
     <script src="js/index.js"></script>
 </body>
 </html>
