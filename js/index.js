@@ -139,6 +139,7 @@ Highcharts.setOptions({
  * **/
 var TEST = false;
 var TESTALL = false;
+var debug = true;
 
 var O = {
     root: "http://poly.hengtech.com.cn/pmsSrv/api/api!gateway.action",
@@ -288,7 +289,9 @@ var O = {
 
         var listStorage = O.getStorage(listKey);            // 获取session
         if (!!listStorage) {
-            console.log(listStorage, listKey);
+            if (!!debug) {
+                console.log(listStorage, listKey);
+            }
 
             if ($table.length > 0){
                 var $tbody = $("tbody", $table[0]);
@@ -309,32 +312,24 @@ var O = {
             return;                                         // 退出ajax请求
         }
 
-        var jsonData = JSON.stringify({
-            tranCode: O.tranCode[O.currentIndex],
-            isEncryption: 0,
-            bizContent: {
-                date: timer,                                //'2016-12-12' timer
-                orgId: O.orgId,
-                grade: O.grade,
-                type: dateType,
-                datetype: 1,                                //数据展示形态 1:汇总,2:明细
-                numType: ''
-            }
-        });
+        var bizCont = {
+            date: timer,                                //'2016-12-12' timer
+            orgId: O.orgId,
+            grade: O.grade,
+            type: dateType,
+            datetype: 1,                                //数据展示形态 1:汇总,2:明细
+            numType: ''
+        },
+        jsonData;
 
         if (tableName == "charge"){
             var chargeDate = O.formDate(1, dateType);       //charge 当期
-            jsonData = JSON.stringify({
-                tranCode: O.tranCode[O.currentIndex],
-                isEncryption: 0,
-                bizContent: {
-                    orgId: O.orgId,
-                    grade: O.grade,
-                    begin: chargeDate.begin,
-                    end: chargeDate.end
-                }
-            });
+            bizCont = {orgId: O.orgId, grade: O.grade, begin: chargeDate.begin, end: chargeDate.end};
+        }else if (tableName == 'login') {
+            bizCont = { orgId: O.orgId, grade: O.grade, type: 1, dateType: dateType};
         }
+
+        jsonData = JSON.stringify({tranCode: O.tranCode[O.currentIndex], isEncryption: 0, bizContent: bizCont});
 
         var layerIndex = layer.load(2, {shade: [0.1, '#fff']});
         if(O.currentIndex == 0){
@@ -357,10 +352,14 @@ var O = {
                 }
 
                 if (result.responseJSON && result.responseJSON.msgCode != undefined && result.responseJSON.msgCode == 0){
-                    data = result.responseJSON.bizContent;
-                    for (var key in data){
-                        if (!Array.isArray(data[key]) && typeof data[key] !== 'object'){
-                            data[key] = parseFloat(data[key]);
+                    if (tableName == 'login') {
+                        data = result.responseJSON.bizContent.table;    // 登录统计
+                    }else {
+                        data = result.responseJSON.bizContent;
+                        for (var key in data){
+                            if (!Array.isArray(data[key]) && typeof data[key] !== 'object'){
+                                data[key] = parseFloat(data[key]);
+                            }
                         }
                     }
 
@@ -450,7 +449,6 @@ var O = {
                             O.writeHtml($square, data);
                         }
                     }
-
                 }else {
                     // TODO: 请求汇总数据成功,但结果为空
                     O.setStorage(listKey, {});
@@ -488,6 +486,7 @@ var O = {
             var dateType = $('.subTab > a.active', O.$currentPage).data('type') || 1;
 
             var chartType = $flow.data("type"),
+                chartName = $flow.data('name'),
                 id = $flow.attr("id"),
                 options = {},
                 category = [],
@@ -498,16 +497,16 @@ var O = {
                 if (chartType == 'area'){
                     category = [];
                     series = [];
-                }else if (chartType=='column'){
-                    category = ['现金','POS','银行托收','转账','支票','微信-线上','微信-线下','支付宝-线上','支付宝-线下','其他'];
-                    series = [data.cash,data.pos,data.delegate,data.exchange,data.check,data.wechatOnline,data.wechatOffline,data.alipayOnline,data.alipayOffline,data.other];
+                }else if (chartType=='column' && chartName == 'charge'){
+                    category = ['现金', 'POS', '银行托收', '转账', '支票', '微信-线上', '微信-线下', '支付宝-线上', '支付宝-线下', '其他'];
+                    series = [data.cash, data.pos, data.delegate, data.exchange, data.check, data.wechatOnline, data.wechatOffline, data.alipayOnline, data.alipayOffline, data.other];
                 }else if (chartType=='solidgauge'){
-                    var tmpData = (O.getRate(data.inspectAbnormal,data.inspectCompleteCount,2)*100).toFixed(2);
+                    var tmpData = (O.getRate(data.inspectAbnormal, data.inspectCompleteCount, 2)*100).toFixed(2);
                     series = parseFloat(tmpData);
                 }
 
-                options = O.flowOption(category,series,chartType,dateType);
-                $chart.highcharts(Highcharts.merge(options,{}));
+                options = O.flowOption(category, series, chartType, dateType, chartName);
+                $chart.highcharts(Highcharts.merge(options, {}));
             }else{
                 /**
                  * TODO: 保存详情数据session
@@ -526,8 +525,11 @@ var O = {
 
                 var detailStorage = O.getStorage(detailKey);
                 if (!!detailStorage) {
-                    console.log(detailStorage, detailKey);
-                    options = O.flowOption(detailStorage.category, detailStorage.series, detailStorage.chartType, detailStorage.dateType);     // 画图
+                    if (!!debug) {
+                        console.log(detailStorage, detailKey);
+                    }
+
+                    options = O.flowOption(detailStorage.category, detailStorage.series, detailStorage.chartType, detailStorage.dateType, detailStorage.chartName);     // 画图
                     $chart.highcharts(Highcharts.merge(options, {}));
 
                     return;                                                         // 退出ajax请求
@@ -535,20 +537,20 @@ var O = {
 
                 var t = (new Date().getTime()) - 24*3600*1000;
                 var timer = (new Date(t)).pattern("yyyy-MM-dd");
-                var subData = JSON.stringify({
-                    tranCode : O.tranCode[O.currentIndex],
-                    isEncryption : 0,
-                    bizContent : {
-                        date: timer,                //'2016-12-12' timer
-                        orgId: O.orgId,
-                        grade: O.grade,
-                        type: dateType,
-                        datetype: 2,
-                        numType: rowType            //1:客户报事,2:客户工单,3:内部报事,4:内部工单
-                    }
-                });
+                var bizCont = {
+                    date: timer,                //'2016-12-12' timer
+                    orgId: O.orgId,
+                    grade: O.grade,
+                    type: dateType,
+                    datetype: 2,
+                    numType: rowType            //1:客户报事,2:客户工单,3:内部报事,4:内部工单
+                };
+                if (chartName == 'login') {
+                    bizCont = {orgId: O.orgId, grade: O.grade, type: rowType, dateType: dateType};
+                }
+                var subData = JSON.stringify({tranCode: O.tranCode[O.currentIndex], isEncryption: 0, bizContent: bizCont});
 
-                var loadOption = { chart: { type: chartType, renderTo: id} };
+                var loadOption = {chart: {type: chartType, renderTo: id}};
                 var charts = new Highcharts.Chart(loadOption);
                 charts.hideNoData();
                 charts.showLoading();
@@ -560,41 +562,43 @@ var O = {
                     data: subData,
                     contentType: 'application/json',
                     complete: function (re) {
-                        var respone;
+                        var response;
                         if (re.responseJSON && re.responseJSON.msgCode!=undefined && re.responseJSON.msgCode==0){
-                            respone = re.responseJSON.bizContent;
+                            response = re.responseJSON.bizContent;
 
                             if (chartType == 'area'){
-                                respone = respone.data;
-                                for (var j in respone){
-                                    respone[j].num = parseFloat(respone[j].num);
+                                response = response.data;
+                                for (var j in response){
+                                    response[j].num = parseFloat(response[j].num || response[j].count);
+                                    response[j].time = response[j].time || response[j].createTime;
+
                                     if (dateType == 1){
-                                        var arr = (respone[j].time.split(' '))[1];      //日:{time:"2016-12-12 08",num:"3"}
+                                        var arr = (response[j].time.split(' '))[1];      //日:{time:"2016-12-12 08",num:"3"}
                                         category.push(arr);
                                     }else if(dateType == 2){
-                                        category.push(respone[j].time);
+                                        category.push(response[j].time);
                                     }else{
-                                        category.push(respone[j].time);
+                                        category.push(response[j].time);
                                     }
 
-                                    series.push(respone[j].num);
+                                    series.push(response[j].num);
                                 }
-                            }else if(chartType=='column'){
-                                for (var j in respone){
-                                    respone[j] = parseFloat(respone[j]);
-                                    category = ['现金','POS','银行托收','转账','支票','微信-线上','微信-线下','支付宝-线上','支付宝-线下','其他'];
-                                    series.push(respone[j]);
+                            }else if(chartType=='column' && chartName == 'charge'){
+                                for (var j in response){
+                                    response[j] = parseFloat(response[j]);
+                                    category = ['现金', 'POS', '银行托收', '转账', '支票', '微信-线上', '微信-线下', '支付宝-线上', '支付宝-线下', '其他'];
+                                    series.push(response[j]);
                                 }
                             }else if (chartType=='solidgauge'){
-                                var tmpData = (O.getRate(respone.inspectAbnormal,respone.inspectCompleteCount,2)*100).toFixed(2);
+                                var tmpData = (O.getRate(response.inspectAbnormal, response.inspectCompleteCount, 2)*100).toFixed(2);
                                 series = parseFloat(tmpData);
                             }
                         }else{
                             if (chartType == 'area'){
                                 category = [];
                                 series = [];
-                            }else if (chartType=='column'){
-                                category = ['现金','POS','银行托收','转账','支票','微信-线上','微信-线下','支付宝-线上','支付宝-线下','其他'];
+                            }else if (chartType=='column' && chartName == 'charge'){
+                                category = ['现金', 'POS', '银行托收', '转账', '支票', '微信-线上', '微信-线下', '支付宝-线上', '支付宝-线下', '其他'];
                                 series = [];
                             }else if (chartType=='solidgauge'){
                                 series = 0;
@@ -606,11 +610,12 @@ var O = {
                             category: category,
                             series: series,
                             chartType: chartType,
-                            dateType: dateType
+                            dateType: dateType,
+                            chartName: chartName
                         });
 
-                        options = O.flowOption(category,series,chartType,dateType);
-                        $chart.highcharts(Highcharts.merge(options,{}));
+                        options = O.flowOption(category, series, chartType, dateType, chartName);
+                        $chart.highcharts(Highcharts.merge(options, {}));
                     },
                     error: function (xhr) {
                         charts.hideLoading();
@@ -627,10 +632,12 @@ var O = {
      * @param Array series 数据列
      * @param String chartType 图表类型
      * @param String dateType 日期类型{1:日,2:周,3:月}
+     * @param String chartName 图表名称，与table名称相同
      * **/
-    flowOption: function (category,series,chartType,dateType) {
+    flowOption: function (category, series, chartType, dateType, chartName) {
         var options = {};
-        if (chartType == 'area'){
+
+        if (chartName == 'postit'){
             options = {
                 chart: {
                     type:'area',
@@ -707,7 +714,7 @@ var O = {
                     }
                 }
             };
-        }else if (chartType=='column'){
+        }else if (chartName == 'charge'){
             options = {
                 chart: {
                     type: 'column'
@@ -745,7 +752,7 @@ var O = {
                     }
                 }]
             };
-        }else if (chartType=='solidgauge'){
+        }else if (chartName == 'patrol_item'){
             options = {
                 chart: {
                     type: 'solidgauge'
@@ -820,7 +827,47 @@ var O = {
                     }]
                 }]
             };
+        }else if (chartName == 'login') {
+            options = {
+                chart: {
+                    type: 'area',
+                    events: {
+                        load: function() {
+                            var series = this.series;
+                        }
+                    }
+                },
+                series: [{
+                    name: '登录次数',
+                    color: '#ff6347',
+                    data: series
+                }],
+                xAxis: {
+                    categories: category,
+                    labels: {
+                        formatter: function(){
+                            var val;
+                            val = this.value;
+                            return val;
+                        }
+                    }
+                },
+                yAxis: {
+                    labels: {
+                        formatter: function(){
+                            return this.value;
+                        }
+                    }
+                },
+                tooltip: {
+                    backgroundColor: '#ff6347',
+                    formatter: function () {
+                        return '时间点:'+ this.x + '<br/>' + '登录次数:' + this.y;
+                    }
+                }
+            };
         }
+
         return options;
     },
 
@@ -839,10 +886,11 @@ var O = {
     /**
      * 表格数据填充
      * **/
-    writeHtml: function ($table,data) {
+    writeHtml: function ($table, data) {
         if (data == undefined || data == null || data == {}){
             return;
         }
+
         var tableName = $table.data("name") || "null";
         switch (tableName){
             case "postit":
@@ -955,22 +1003,22 @@ var O = {
                         case 1:
                             data.complete1 = currCom;
                             data.currAll1 = currAll;
-                            data.complete1Count = O.getRate(data.complete1,currAll,2);
+                            data.complete1Count = O.getRate(data.complete1, currAll, 2);
                             break;
                         case 2:
                             data.complete2 = currCom;
                             data.currAll2 = currAll;
-                            data.complete2Count = O.getRate(data.complete2,currAll,2);
+                            data.complete2Count = O.getRate(data.complete2, currAll, 2);
                             break;
                         case 3:
                             data.complete3 = currCom;
                             data.currAll3 = currAll;
-                            data.complete3Count = O.getRate(data.complete3,currAll,2);
+                            data.complete3Count = O.getRate(data.complete3, currAll, 2);
                             break;
                         case 4:
                             data.complete4 = currCom;
                             data.currAll4 = currAll;
-                            data.complete4Count = O.getRate(data.complete4,currAll,2);
+                            data.complete4Count = O.getRate(data.complete4, currAll, 2);
                             break;
                         default:
                             break;
@@ -1003,36 +1051,36 @@ var O = {
                 data.complete3Rate = O.getRate(data.complete3,data.lastComplete3,1);
                 data.complete4Rate = O.getRate(data.complete4,data.lastComplete4,1);
                 */
-                data.complete1Rate = O.getRate(data.currAll1,data.lastAll1,1);
-                data.complete2Rate = O.getRate(data.currAll2,data.lastAll2,1);
-                data.complete3Rate = O.getRate(data.currAll3,data.lastAll3,1);
-                data.complete4Rate = O.getRate(data.currAll4,data.lastAll4,1);
+                data.complete1Rate = O.getRate(data.currAll1, data.lastAll1, 1);
+                data.complete2Rate = O.getRate(data.currAll2, data.lastAll2, 1);
+                data.complete3Rate = O.getRate(data.currAll3, data.lastAll3, 1);
+                data.complete4Rate = O.getRate(data.currAll4, data.lastAll4, 1);
                 break;
             case "charge":
-                data.thisOldRate = O.getRate(data.thisOld,data.passOld,1);
-                data.thisNowRate = O.getRate(data.thisNow,data.passNow,1);
-                data.thisPrepayRate = O.getRate(data.thisPrepay,data.passPrepay,1);
+                data.thisOldRate = O.getRate(data.thisOld, data.passOld, 1);
+                data.thisNowRate = O.getRate(data.thisNow, data.passNow, 1);
+                data.thisPrepayRate = O.getRate(data.thisPrepay, data.passPrepay, 1);
                 break;
             case "patrol_task":
-                data.taskCountRate = O.getRate(data.taskCount,data.pre_taskCount,1);
-                data.taskCompleteCountRate = O.getRate(data.taskCompleteCount,data.pre_taskCompleteCount,1);
+                data.taskCountRate = O.getRate(data.taskCount, data.pre_taskCount, 1);
+                data.taskCompleteCountRate = O.getRate(data.taskCompleteCount, data.pre_taskCompleteCount, 1);
 
                 var taskRangeTime = O.getRate(data.time,data.taskCompleteCount,2);
                 data.taskRangeTime = taskRangeTime;
 
-                var taskRangeTimeRate = O.getRate(taskRangeTime,O.getRate(data.pre_time,data.pre_taskCompleteCount,2),1);
+                var taskRangeTimeRate = O.getRate(taskRangeTime, O.getRate(data.pre_time, data.pre_taskCompleteCount, 2), 1);
                 data.taskRangeTimeRate = taskRangeTimeRate;
 
-                var completeRate = O.getRate(data.taskCompleteCount,data.taskCount,2);
+                var completeRate = O.getRate(data.taskCompleteCount, data.taskCount, 2);
                 data.completeRate = completeRate;
 
-                var passCompleteRate = O.getRate(completeRate,O.getRate(data.pre_taskCompleteCount,data.pre_taskCount,2),1);
+                var passCompleteRate = O.getRate(completeRate, O.getRate(data.pre_taskCompleteCount, data.pre_taskCount, 2), 1);
                 data.passCompleteRate = passCompleteRate;
                 break;
             case "patrol_item":
-                data.inspectCountRate = O.getRate(data.inspectCount,data.pre_inspectCount,1);
-                data.inspectCompleteCountRate = O.getRate(data.inspectCompleteCount,data.pre_inspectCompleteCount,1);
-                data.inspectAbnormalRate = O.getRate(data.inspectAbnormal,data.pre_inspectAbnormal,1);
+                data.inspectCountRate = O.getRate(data.inspectCount, data.pre_inspectCount, 1);
+                data.inspectCompleteCountRate = O.getRate(data.inspectCompleteCount, data.pre_inspectCompleteCount, 1);
+                data.inspectAbnormalRate = O.getRate(data.inspectAbnormal, data.pre_inspectAbnormal, 1);
                 break;
             case "online":
                 data = data.bizContent;
@@ -1049,12 +1097,12 @@ var O = {
                 data.propertyNum = data.currentPeriod.propertyNum;
                 data.identifyPropertyNum = data.currentPeriod.identifyPropertyNum;
 
-                data.customerNumRate = O.getRate(data.currentPeriod.customerNum,data.lastPeriod.customerNum,1);
-                data.registerNumRate = O.getRate(data.currentPeriod.registerNum,data.lastPeriod.registerNum,1);
-                data.attentionNumRate = O.getRate(data.currentPeriod.attentionNum,data.lastPeriod.attentionNum,1);
-                data.identifyNumRate = O.getRate(data.currentPeriod.identifyNum,data.lastPeriod.identifyNum,1);
-                data.propertyNumRate = O.getRate(data.currentPeriod.propertyNum,data.lastPeriod.propertyNum,1);
-                data.identifyPropertyNumRate = O.getRate(data.currentPeriod.identifyPropertyNum,data.lastPeriod.identifyPropertyNum,1);
+                data.customerNumRate = O.getRate(data.currentPeriod.customerNum, data.lastPeriod.customerNum, 1);
+                data.registerNumRate = O.getRate(data.currentPeriod.registerNum, data.lastPeriod.registerNum, 1);
+                data.attentionNumRate = O.getRate(data.currentPeriod.attentionNum, data.lastPeriod.attentionNum, 1);
+                data.identifyNumRate = O.getRate(data.currentPeriod.identifyNum, data.lastPeriod.identifyNum, 1);
+                data.propertyNumRate = O.getRate(data.currentPeriod.propertyNum, data.lastPeriod.propertyNum, 1);
+                data.identifyPropertyNumRate = O.getRate(data.currentPeriod.identifyPropertyNum, data.lastPeriod.identifyPropertyNum, 1);
                 break;
             case "wx_operation":
                 data.cusReport = data.currentData.cusReport;
@@ -1063,26 +1111,34 @@ var O = {
                 data.openDoor = data.currentData.openDoor;
                 data.bill = data.currentData.bill;
 
-                data.cusReportRate = O.getRate(data.currentData.cusReport,data.lastData.cusReport,1);
-                data.bizHandleRate = O.getRate(data.currentData.bizHandle,data.lastData.bizHandle,1);
-                data.visitorAccessRate = O.getRate(data.currentData.visitorAccess,data.lastData.visitorAccess,1);
-                data.openDoorRate = O.getRate(data.currentData.openDoor,data.lastData.openDoor,1);
-                data.billRate = O.getRate(data.currentData.bill,data.lastData.bill,1);
+                data.cusReportRate = O.getRate(data.currentData.cusReport, data.lastData.cusReport, 1);
+                data.bizHandleRate = O.getRate(data.currentData.bizHandle, data.lastData.bizHandle, 1);
+                data.visitorAccessRate = O.getRate(data.currentData.visitorAccess, data.lastData.visitorAccess, 1);
+                data.openDoorRate = O.getRate(data.currentData.openDoor, data.lastData.openDoor, 1);
+                data.billRate = O.getRate(data.currentData.bill, data.lastData.bill, 1);
+                break;
+            case 'login':
+                data.pcRate = O.getRate(data.pc, data.pcOld, 1);
+                data.hygjRate = O.getRate(data.hygj, data.hygjOld, 1);
+                data.hytRate = O.getRate(data.hyt, data.hytOld, 1);
                 break;
             default:
                 break;
         }
 
-        // console.info(data);
+        if (!!debug) {
+            console.info('tableData', data);
+        }
 
-        var $tr = $('tbody tr',$table);  // $('[row="'+i+'"]',$table);
+        var $tr = $('tbody tr', $table);  // $('[row="'+i+'"]',$table);
         if($tr.length <= 0){
             $tr = $table;  //.square
         }
 
         for (var k in data){
-            var  $td = $("[name='"+k+"']",$tr);
+            var  $td = $("[name='"+k+"']", $tr);
             var type = $td.attr("type");
+
             if (type == "per"){
                 if (typeof data[k] == "string"){
                     $td.removeClass("lowRed");
@@ -1098,9 +1154,9 @@ var O = {
             }else if (type == "timeCount"){
                 $td.html(O.longTime(data[k]));
             }else if(type == "area"){
-                $td.html(data[k]==null?"--":data[k]);
+                $td.html(data[k]==null? "--" : data[k]);
             }else{
-                $td.html(data[k]==null?"--":data[k]);
+                $td.html(data[k]==null? "--" : data[k]);
             }
         }
     },
@@ -1376,11 +1432,11 @@ $(function () {
     }());
 });
 
-function init(respone) {
-    var json = $.parseJSON(respone),
+function init(response) {
+    var json = $.parseJSON(response),
         $slider = $("#slider"),
         $mainTabWrap = $(".mainTabWrap");
-    var $sliderContentUl = $(".sliderContentUl > li",$slider),
+    var $sliderContentUl = $(".sliderContentUl > li", $slider),
         $pageNav = $("#pageNav > li",$mainTabWrap);
     var tempTranCode = [3025, 2413, 3020, 3020, 3026, 3023, 3022, 3024, 2076];
 
