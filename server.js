@@ -1,28 +1,37 @@
 'use strict';
 
 /**
- *
+ * http://poly.hengtech.com.cn/pmsSrv/api/api!gateway.action
  * @param req
  * @param res
  *
  * 调试方法：
- * index.js
- * server.js
+ * 修改 runRul 参数
  */
 var browserSync = require('browser-sync').create();
 var http = require('http');
-var TEST = true,
-	dev = {0: "poly.hengtech.com.cn", 1: "uat.hengtech.com.cn", 2: "train.hengtech.com.cn", 3: "wechat.kai-men.cn"};
+var URL = require('url').URL;
+
+var dev = {
+	0: new URL('http://poly.hengtech.com.cn/api/api!gateway.action'),
+	1: new URL('http://uat.hengtech.com.cn/pmsSrv/api/api!gateway.action'),
+	2: new URL('http://train.hengtech.com.cn/pmsSrv/api/api!gateway.action'),
+	3: new URL('http://wechat.kai-men.cn/pmsSrv/api/api!gateway.action'),
+	4: new URL('http://srv.sit.hengtech.com.cn/')
+};
+var runRul = dev[1];	// TODO: 调试修改这里
 
 var proxySrv = function(req, res) {
 	var options = {
-        hostname: dev[1],
+        hostname: runRul.host,
 		port: 80,
-		// path: req.url.replace(/^\/api/,''),
-        path:  (TEST ? '/pmsSrv' : '') +  req.url,
+        path:  runRul.pathname,
         // path: '/pmsSrv' +  req.url,
+        // path: req.url.replace(/^\/api/,''),
 		method: 'POST'
 	};
+
+	console.info(options.hostname,options.path);
 
 	var apiReq = http.request(options, apiRes => {
 		apiRes.setEncoding('utf8');
@@ -35,7 +44,7 @@ var proxySrv = function(req, res) {
 	});
 
 	req.addListener('data', data => {
-		console.log('request data \n', data.toString())
+		console.log('request data \n', data.toString());
 		apiReq.write(data);
 	});
 	req.addListener('end', () => {
@@ -51,7 +60,7 @@ browserSync.init({
 		index: 'index.html',
 		middleware: function(req, res, next) {
 			console.log(req.url);
-			if (req.url.match(/^\/api/)) {
+			if (req.url.match(/api/)) {
 				proxySrv(req, res);
 				return;
 			}

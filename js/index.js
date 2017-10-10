@@ -142,7 +142,6 @@ var TESTALL = false;
 var debug = true;
 
 var O = {
-    root: "http://poly.hengtech.com.cn/pmsSrv/api/api!gateway.action",
     postUrl: '/pmsSrv/api/api!gateway.action',
 
     currentIndex: 0,
@@ -325,8 +324,8 @@ var O = {
         if (tableName == "charge"){
             var chargeDate = O.formDate(1, dateType);       //charge 当期
             bizCont = {orgId: O.orgId, grade: O.grade, begin: chargeDate.begin, end: chargeDate.end};
-        }else if (tableName == 'login') {
-            bizCont = { orgId: O.orgId, grade: O.grade, type: 1, dateType: dateType};
+        }else if (tableName == 'login_statistics') {
+            bizCont = { orgId: O.orgId, grade: O.grade, dateType: dateType, queryType: 1};
         }
 
         jsonData = JSON.stringify({tranCode: O.tranCode[O.currentIndex], isEncryption: 0, bizContent: bizCont});
@@ -352,8 +351,8 @@ var O = {
                 }
 
                 if (result.responseJSON && result.responseJSON.msgCode != undefined && result.responseJSON.msgCode == 0){
-                    if (tableName == 'login') {
-                        data = result.responseJSON.bizContent.table;    // 登录统计
+                    if (tableName == 'login_statistics') {
+                        data = result.responseJSON.bizContent.data;    // 登录统计
                     }else {
                         data = result.responseJSON.bizContent;
                         for (var key in data){
@@ -545,8 +544,8 @@ var O = {
                     datetype: 2,
                     numType: rowType            //1:客户报事,2:客户工单,3:内部报事,4:内部工单
                 };
-                if (chartName == 'login') {
-                    bizCont = {orgId: O.orgId, grade: O.grade, type: rowType, dateType: dateType};
+                if (chartName == 'login_statistics') {
+                    bizCont = {orgId: O.orgId, grade: O.grade, type: rowType, dateType: dateType, queryType: 2};
                 }
                 var subData = JSON.stringify({tranCode: O.tranCode[O.currentIndex], isEncryption: 0, bizContent: bizCont});
 
@@ -583,13 +582,13 @@ var O = {
 
                                     series.push(response[j].num);
                                 }
-                            }else if(chartType=='column' && chartName == 'charge'){
+                            }else if(chartType == 'column' && chartName == 'charge'){
                                 for (var j in response){
                                     response[j] = parseFloat(response[j]);
                                     category = ['现金', 'POS', '银行托收', '转账', '支票', '微信-线上', '微信-线下', '支付宝-线上', '支付宝-线下', '其他'];
                                     series.push(response[j]);
                                 }
-                            }else if (chartType=='solidgauge'){
+                            }else if (chartType == 'solidgauge'){
                                 var tmpData = (O.getRate(response.inspectAbnormal, response.inspectCompleteCount, 2)*100).toFixed(2);
                                 series = parseFloat(tmpData);
                             }
@@ -597,10 +596,10 @@ var O = {
                             if (chartType == 'area'){
                                 category = [];
                                 series = [];
-                            }else if (chartType=='column' && chartName == 'charge'){
+                            }else if (chartType == 'column' && chartName == 'charge'){
                                 category = ['现金', 'POS', '银行托收', '转账', '支票', '微信-线上', '微信-线下', '支付宝-线上', '支付宝-线下', '其他'];
                                 series = [];
-                            }else if (chartType=='solidgauge'){
+                            }else if (chartType == 'solidgauge'){
                                 series = 0;
                             }
                         }
@@ -827,7 +826,7 @@ var O = {
                     }]
                 }]
             };
-        }else if (chartName == 'login') {
+        }else if (chartName == 'login_statistics') {
             options = {
                 chart: {
                     type: 'area',
@@ -1117,7 +1116,7 @@ var O = {
                 data.openDoorRate = O.getRate(data.currentData.openDoor, data.lastData.openDoor, 1);
                 data.billRate = O.getRate(data.currentData.bill, data.lastData.bill, 1);
                 break;
-            case 'login':
+            case 'login_statistics':
                 data.pcRate = O.getRate(data.pc, data.pcOld, 1);
                 data.hygjRate = O.getRate(data.hygj, data.hygjOld, 1);
                 data.hytRate = O.getRate(data.hyt, data.hytOld, 1);
@@ -1410,7 +1409,7 @@ $(function () {
 
             $("#loading .text").html("Testing,Please wait...");
 
-            var t = '{"grade":4,"orgId":100960,"authCodeList":[{"code":"hygj_report"},{"code":"hygj_report_postit"},{"code":"hygj_report_charge"},{"code":"hygj_report_patrol_task"},{"code":"hygj_report_patrol_item"},{"code":"hygj_report_online"},{"code":"hygj_report_wxonline"},{"code":"hygj_report_wxusers_analysis"},{"code":"hygj_report_wx_operation"},{"code":"hygj_report_login"}]}';
+            var t = '{"grade":4,"orgId":100960,"authCodeList":[{"code":"hygj_report"},{"code":"hygj_report_postit"},{"code":"hygj_report_charge"},{"code":"hygj_report_patrol_task"},{"code":"hygj_report_patrol_item"},{"code":"hygj_report_online"},{"code":"hygj_report_wxonline"},{"code":"hygj_report_wxusers_analysis"},{"code":"hygj_report_wx_operation"},{"code":"hygj_report_login_statistics"}]}';
             t = '{"grade":4,"orgId":100960,"authCodeList":[{"code":"hygj_report_wxonline"},{"code":"hygj_report_wxusers_analysis"},{"code":"hygj_report_wx_operation"}]}';
             t = '{"grade":4,"orgId":91387,"authCodeList":[{"code":"hygj_report_postit"},{"code":"hygj_report_online"},{"code":"hygj_report_wxonline"},{"code":"hygj_report_wxusers_analysis"}]}';
             t = '{"grade":4,"orgId":91387,"authCodeList":[{"code":"hygj_report"},{"code":"hygj_report_charge"}]}';
