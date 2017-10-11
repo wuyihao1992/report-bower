@@ -13,7 +13,7 @@ var http = require('http');
 var URL = require('url').URL;
 
 var dev = {
-	0: new URL('http://poly.hengtech.com.cn/api/api!gateway.action'),
+	0: new URL('http://192.168.1.90:10021/pmsSrv/api/api!gateway.action'),
 	1: new URL('http://uat.hengtech.com.cn/pmsSrv/api/api!gateway.action'),
 	2: new URL('http://train.hengtech.com.cn/pmsSrv/api/api!gateway.action'),
 	3: new URL('http://wechat.kai-men.cn/pmsSrv/api/api!gateway.action'),
@@ -25,18 +25,18 @@ var proxySrv = function(req, res) {
 	var options = {
         hostname: runRul.host,
 		port: 80,
-        path:  runRul.pathname,
+        path: runRul.pathname,
         // path: '/pmsSrv' +  req.url,
         // path: req.url.replace(/^\/api/,''),
 		method: 'POST'
 	};
 
-	console.info(options.hostname,options.path);
+	console.info('\nproxySrv Start...\n'+ 'hostname => ' + options.hostname, 'path => ' + options.path);
 
 	var apiReq = http.request(options, apiRes => {
 		apiRes.setEncoding('utf8');
 		apiRes.on('data', data => {
-			console.log('response data \n', data);
+			console.log('response data =>\n', data);
 			res.write(data);
 		}).on('end', () => {
 			res.end()
@@ -44,7 +44,7 @@ var proxySrv = function(req, res) {
 	});
 
 	req.addListener('data', data => {
-		console.log('request data \n', data.toString());
+		console.log('request data =>', data.toString());
 		apiReq.write(data);
 	});
 	req.addListener('end', () => {
@@ -59,8 +59,8 @@ browserSync.init({
         // startPath: "/index.html",
 		index: 'index.html',
 		middleware: function(req, res, next) {
-			console.log(req.url);
 			if (req.url.match(/api/)) {
+                console.log('req.url => ' + req.url);
 				proxySrv(req, res);
 				return;
 			}
