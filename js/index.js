@@ -139,7 +139,7 @@ Highcharts.setOptions({
  * **/
 var TEST = false;
 var TESTALL = false;
-var debug = true;
+var debug = false;
 
 var O = {
     postUrl: '/pmsSrv/api/api!gateway.action',
@@ -238,11 +238,8 @@ var O = {
     },
 
     tableManager: function () {
-        var date = new Date(), t = (new Date().getTime()) - 24*3600*1000;
-
         var $subContent = $(".subContent", O.$currentPage),
-            dateType = $('.subTab > a.active', O.$currentPage).data('type') || 1,    //日期类型
-            timer = (new Date(t)).pattern("yyyy-MM-dd");
+            dateType = $('.subTab > a.active', O.$currentPage).data('type') || 1;    //日期类型;
 
         var $table = $("table", $subContent),                                       // 表格
             $square = $(".square", O.$currentPage),                                 // 九宫格
@@ -251,24 +248,38 @@ var O = {
         var $i = $("thead .rate var", $table);                                       //$i = $("thead .rate i", $table);
         var tableName = $table.data("name");
 
+        var date = new Date(), t = (new Date().getTime()) - 24*3600*1000;
+
+        if (tableName == 'login_statistics') {
+            t = new Date().getTime();   // 登录统计统计今天
+        }
+
+        var timer = (new Date(t)).pattern("yyyy-MM-dd");
+
         if ($i.length > 0){
-            $i.text((dateType==1&&"(昨日值-前日值 )/前日值") || (dateType==2&&"(本周累计昨日值-上周同期累计值 )/上周同期累计值") || (dateType==3&&"(本月累计昨日值-上月同期累计值 )/上月同期累计值"));
+            if (tableName == 'login_statistics') {
+                $i.text((dateType==1&&"(今日值-昨日值 )/昨日值") || (dateType==2&&"(本周累计今日值-上周同期累计值 )/上周同期累计值") || (dateType==3&&"(本月累计今日值-上月同期累计值 )/上月同期累计值"));
+            }else {
+                $i.text((dateType==1&&"(昨日值-前日值 )/前日值") || (dateType==2&&"(本周累计昨日值-上周同期累计值 )/上周同期累计值") || (dateType==3&&"(本月累计昨日值-上月同期累计值 )/上月同期累计值"));
+            }
         }
 
         if (dateType != undefined){
             var week = date.getDay();
+            var monthDate = O.formDate(1, dateType);
+
+            if (tableName == 'login_statistics') {
+                week = week - 1;
+                monthDate.end = (new Date(monthDate.end).getTime()) + 24*3600*1000;
+                monthDate.end = (new Date(monthDate.end)).pattern('yyyy/MM/dd');
+            }
 
             var temT = week==0 ? ((new Date().getTime()) - 24*3600*1000*7) : ((new Date().getTime()) - 24*3600*1000*week);
             week = (new Date(temT)).pattern("yyyy/MM/dd") + ' 至 ' + (new Date(t)).pattern("yyyy/MM/dd");        //上周日-昨天
 
-            var month = date.getMonth(),
-                fullYear = date.getFullYear();
-            var ss = O.formDate(1, dateType);
-            // month = fullYear+'/'+O.monthMap2(month)+'/01'+ ' 至 ' + (new Date(t)).pattern("yyyy/MM/dd");
-            month = (ss.begin).replace(/-/gi, '/') + ' 至 ' + (ss.end).replace(/-/gi, '/');
+            var month = (monthDate.begin).replace(/-/gi, '/') + ' 至 ' + (monthDate.end).replace(/-/gi, '/');
 
             var str = (dateType==1 && ((new Date(t)).pattern("yyyy/MM/dd"))) || (dateType==2 && week) || (dateType==3 && month);
-
             $nowDate.text('('+ str +')');
         }else{
             var str = '截止'+ (new Date(t)).pattern("yyyy/MM/dd");
@@ -573,7 +584,7 @@ var O = {
 
                                     if (dateType == 1){
                                         var arr = (response[j].time.split(' '))[1];      //日:{time:"2016-12-12 08",num:"3"}
-                                        category.push(arr);
+                                        category.push(arr || response[j].time);
                                     }else if(dateType == 2){
                                         category.push(response[j].time);
                                     }else{
