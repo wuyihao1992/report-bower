@@ -269,7 +269,7 @@ var O = {
             var monthDate = O.formDate(1, dateType);
 
             if (tableName == 'login_statistics') {
-                week = week - 1;
+                // week = week - 1;
                 monthDate.end = (new Date(monthDate.end).getTime()) + 24*3600*1000;
                 monthDate.end = (new Date(monthDate.end)).pattern('yyyy/MM/dd');
             }
